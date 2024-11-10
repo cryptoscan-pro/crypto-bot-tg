@@ -1,6 +1,6 @@
 # Используем переменные для удобства
-DOCKER_IMAGE_NAME = myapp
-DOCKER_CONTAINER_NAME = myapp_container
+DOCKER_IMAGE_NAME = crypto-bot-tg
+DOCKER_CONTAINER_NAME = crypto-bot-tg
 
 # Загружаем переменные из .env файла
 include .env
