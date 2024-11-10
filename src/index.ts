@@ -1,7 +1,6 @@
 import "dotenv/config";
-import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
+import { bot, CLIENTS_FILE_PATH } from "./utils/constants";
 import { startWebsocketListening } from "./services/startWebsocketListening";
-import { getMessageByItem } from "./utils/getMessageByItem";
 import { startHttpListening } from "./services/startHttpListening";
 import { LimitedSet } from "./utils/LimitedSet";
 import FileMap from "@javeoff/file-map";
@@ -9,7 +8,6 @@ import { Markup } from "telegraf";
 import { getDataTypes, getTypeColumns } from "./utils/getData";
 import { chunk } from "./utils/chunk";
 import { askContinueOrSave } from "./utils/askContinueOrSave";
-import { startNewStep } from "./utils/startNewStep";
 
 const CLIENTS = new FileMap(CLIENTS_FILE_PATH);
 const historyIds = new LimitedSet(20);
