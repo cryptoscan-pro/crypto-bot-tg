@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
+import { hello } from "./utils/hello";
 import { startWebsocketListening } from "./services/startWebsocketListening";
 import { startHttpListening } from "./services/startHttpListening";
 import { LimitedSet } from "./utils/LimitedSet";
