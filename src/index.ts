@@ -7,6 +7,9 @@ import { LimitedSet } from "./utils/LimitedSet";
 import FileMap from "@javeoff/file-map";
 import { Markup } from "telegraf";
 import { getDataTypes, getTypeColumns } from "./utils/getData";
+import { chunk } from "./utils/chunk";
+import { askContinueOrSave } from "./utils/askContinueOrSave";
+import { startNewStep } from "./utils/startNewStep";
 
 const CLIENTS = new FileMap(CLIENTS_FILE_PATH);
 const historyIds = new LimitedSet(20);
@@ -135,41 +138,6 @@ bot.command('add', async (ctx) => {
 });
 
 // Функция для продолжения или сохранения
-async function askContinueOrSave(ctx, userId: string, query: Record<string, string>) {
-    const continueButton = Markup.button.callback("Продолжить", "continue");
-    const saveButton = Markup.button.callback("Сохранить", "save");
-    const keyboard = Markup.inlineKeyboard([[continueButton, saveButton]]);
-
-    await ctx.reply("Что хотите сделать дальше?", keyboard);
-
-    bot.action('continue', async (ctx) => {
-        await ctx.answerCbQuery();
-        await startNewStep(ctx);
-    });
-
-    bot.action('save', async (ctx) => {
-        await ctx.answerCbQuery();
-        CLIENTS.set(userId, query);
-        await ctx.reply("Настройки сохранены!");
-        // Здесь можно завершить настройку
-    });
-}
-
-async function startNewStep(ctx) {
-    // Тут может быть логика продолжения настройки (например, выбор нового фильтра или поля)
-    const dataTypes = await getDataTypes();
-    const typeButtons = dataTypes.map(type => Markup.button.callback(type, `type_${type}`));
-    const typeKeyboard = typeButtons.length > 3 ? chunk(typeButtons, 3) : [typeButtons];
-    await ctx.reply("Выберите тип данных:", Markup.inlineKeyboard(typeKeyboard));
-}
-
-function chunk(arr: any[], size: number) {
-    const result = [];
-    for (let i = 0; i < arr.length; i += size) {
-        result.push(arr.slice(i, i + size));
-    }
-    return result;
-}
 
 bot.launch(() => {
     CLIENTS.forEach((query, userId) => {
