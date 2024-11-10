@@ -30,8 +30,6 @@ const telegramQueue = new PQueue({
 	interval: TELEGRAM_QUEUE_INTERVAL,
 });
 
-
-
 setInterval(() => {
 	for (const [id, query] of Array.from(listeners.entries())) {
 		queue.add(() => getData(query)).then((data) => {
