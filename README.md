@@ -1,8 +1,6 @@
 # @cryptoscan/cryptobot-tg
 
-# @cryptoscan/cryptobot-tg
-
-![Example Image](./assets/example.png){: width="300px"}
+![Example Image](./assets/example.png)
 
 ## Description
 
