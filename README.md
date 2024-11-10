@@ -21,7 +21,12 @@
 
 ## Configuration
 
-Create a `.env` file based on `.env.example` and specify the necessary environment variables.
+Create a `.env` file based on `.env.example` and specify the necessary environment variables:
+
+- `BOT_TOKEN`: This is the API key for your Telegram bot. It is required to authenticate and interact with the Telegram API.
+- `WEBSOCKET`: Set this to `1` to use WebSockets for real-time data updates, or `0` to use HTTP.
+
+These configurations are crucial for the bot's operation, determining how it connects to Telegram and whether it uses WebSockets or HTTP for data communication.
 
 ## Running
 
@@ -43,6 +48,17 @@ After starting the bot, you can interact with it via Telegram. The command flow 
    - Sorting is available for both types.
 5. If `change %` is selected, choose an interval: `change5s`, `10s`, `15s`, `30s`, `1 min`, `1 hour`.
 6. Finally, decide whether to continue adding options or save the configuration. The bot will then start listening for changes.
+
+### Option Sets
+
+The option sets in the bot are used to customize how data is retrieved and displayed. They allow users to:
+
+- **Select Data Types**: Choose the type of cryptocurrency data to interact with, such as `types`, `arbitrage`, `contracts`, `networks`.
+- **Choose Fields**: Specify which fields to sort or filter, like `id`, `type`, `exchange`, `symbol`, `name`, `price`, `volume`, `createdAt`.
+- **Apply Actions**: Determine how to manipulate the data, including sorting, filtering, or changing percentages. This helps in organizing and analyzing data effectively.
+- **Set Change Intervals**: When using the `change %` option, select intervals like `change5s`, `10s`, `15s`, `30s`, `1 min`, `1 hour` to monitor data changes over time.
+
+These options provide flexibility in data handling, enabling users to tailor the bot's functionality to their specific needs.
 
 ## Key Features
 
