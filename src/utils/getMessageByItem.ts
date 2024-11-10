@@ -1,3 +1,5 @@
+import { parseValue } from "./parseValue";
+
 export function getMessageByItem(item: Record<string, string | number>) {
 	return Object.entries(item)
 		.map(([key, value]) => {
@@ -5,7 +7,7 @@ export function getMessageByItem(item: Record<string, string | number>) {
 				return;
 			}
 
-			return `${key}: ${value}`
+			return `${key}: ${parseValue(key, value)}`
 		})
 		.filter((v) => !!v)
 		.join('\n');

@@ -1,6 +1,7 @@
 import { Markup } from "telegraf";
-import { bot, CLIENTS } from "./constants";
 import { startNewStep } from "./startNewStep";
+import { bot } from "./constants";
+import { CLIENTS } from "..";
 
 export async function askContinueOrSave(ctx, userId: string, query: Record<string, string>) {
     const continueButton = Markup.button.callback("Продолжить", "continue");

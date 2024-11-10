@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { bot, CLIENTS_FILE_PATH } from "./utils/constants";
+import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
 import { startWebsocketListening } from "./services/startWebsocketListening";
 import { startHttpListening } from "./services/startHttpListening";
 import { LimitedSet } from "./utils/LimitedSet";
@@ -8,8 +8,9 @@ import { Markup } from "telegraf";
 import { getDataTypes, getTypeColumns } from "./utils/getData";
 import { chunk } from "./utils/chunk";
 import { askContinueOrSave } from "./utils/askContinueOrSave";
+import { getMessageByItem } from "./utils/getMessageByItem";
 
-const CLIENTS = new FileMap(CLIENTS_FILE_PATH);
+export const CLIENTS = new FileMap(CLIENTS_FILE_PATH);
 const historyIds = new LimitedSet(20);
 
 let start = (id: string, query: Record<string, string>) => { };
@@ -31,75 +32,83 @@ if (process.env.WEBSOCKET !== '1') {
 
 bot.command('add', async (ctx) => {
     const userId = String(ctx.from.id);
-    let query: Record<string, string> = {};
+    let query: Record<string, string | number> = {};
 
     const dataTypes = await getDataTypes();
     const typeButtons = dataTypes.map(type => Markup.button.callback(type, `type_${type}`));
     const typeKeyboard = typeButtons.length > 3 ? chunk(typeButtons, 3) : [typeButtons];
-    await ctx.reply("Select data type:", Markup.inlineKeyboard(typeKeyboard));
+    await ctx.reply("Выберите тип данных:", Markup.inlineKeyboard(typeKeyboard));
 
-    bot.action(/^type_(.*)$/, async (ctx) => {
+    bot.action(new RegExp(`^type_(.*)$`), async (ctx) => {
         const selectedType = ctx.match[1];
         query['type'] = selectedType;
         const columns = await getTypeColumns(selectedType);
         const columnButtons = columns.map(col => Markup.button.callback(col, `column_${col}`));
         const columnKeyboard = columnButtons.length > 3 ? chunk(columnButtons, 3) : [columnButtons];
-        await ctx.reply("Select a field for filtering or sorting:", Markup.inlineKeyboard(columnKeyboard));
+        await ctx.reply("Выберите поле для фильтрации или сортировки:", Markup.inlineKeyboard(columnKeyboard));
 
-        bot.action(/^column_(.*)$/, async (ctx) => {
+        bot.action(new RegExp(`^column_(.*)$`), async (ctx) => {
             const selectedColumn = ctx.match[1];
             const actions = [
-                Markup.button.callback("Сортировка min", `sort_min_${selectedColumn}`),
-                Markup.button.callback("Сортировка max", `sort_max_${selectedColumn}`),
-                Markup.button.callback("Фильтр", `filter_${selectedColumn}`),
+                Markup.button.callback("Сортировка по убыванию", `sort_desc_${selectedColumn}`),
+                Markup.button.callback("Сортировка по возрастанию", `sort_asc_${selectedColumn}`),
+                Markup.button.callback("Фильтр по min", `filter_min_${selectedColumn}`),
+                Markup.button.callback("Фильтр по max", `filter_max_${selectedColumn}`),
                 Markup.button.callback("Изменение %", `includes_${selectedColumn}`)
             ];
-            const actionsKeyboard = actions.length > 2 ? chunk(actions, 2) : [actions];
-            await ctx.reply("Select an action:", Markup.inlineKeyboard(actionsKeyboard));
+            const actionsKeyboard = chunk(actions, 2);
+            await ctx.reply("Выберите действие:", Markup.inlineKeyboard(actionsKeyboard));
 
-            bot.action(/^sort_min_(.*)$/, async (ctx) => {
+            // Сортировка по убыванию
+            bot.action(new RegExp(`^sort_desc_(.*)$`), async (ctx) => {
                 const column = ctx.match[1];
-                await ctx.reply(`Enter the minimum value for sorting by ${column}:`);
-                bot.once('text', async (msgCtx) => {
+                query[`sort[${column}]`] = "desc";
+                CLIENTS.set(userId, query);
+                await ctx.reply(`Сортировка по ${column} в порядке убывания установлена.`);
+                await askContinueOrSave(ctx, userId, query);
+            });
+
+            // Сортировка по возрастанию
+            bot.action(new RegExp(`^sort_asc_(.*)$`), async (ctx) => {
+                const column = ctx.match[1];
+                query[`sort[${column}]`] = "asc";
+                CLIENTS.set(userId, query);
+                await ctx.reply(`Сортировка по ${column} в порядке возрастания установлена.`);
+                await askContinueOrSave(ctx, userId, query);
+            });
+
+            // Фильтрация по min
+            bot.action(new RegExp(`^filter_min_(.*)$`), async (ctx) => {
+                const column = ctx.match[1];
+                await ctx.reply(`Введите минимальное значение для фильтрации по ${column}:`);
+                bot.on('text', async (msgCtx) => {
                     if (msgCtx.chat.id === ctx.chat.id) {
                         const minValue = msgCtx.message.text;
-                        query[`sort[${column}]`] = { min: minValue };
+                        query[`min${capitalizeFirstLetter(column)}`] = minValue;
                         CLIENTS.set(userId, query);
-                        await ctx.reply(`Minimum sorting by ${column} set to ${minValue}.`);
+                        await ctx.reply(`Минимальное значение для ${column} установлено: ${minValue}.`);
                         await askContinueOrSave(ctx, userId, query);
                     }
                 });
             });
 
-            bot.action(/^sort_max_(.*)$/, async (ctx) => {
+            // Фильтрация по max
+            bot.action(new RegExp(`^filter_max_(.*)$`), async (ctx) => {
                 const column = ctx.match[1];
-                await ctx.reply(`Enter the maximum value for sorting by ${column}:`);
-                bot.once('text', async (msgCtx) => {
+                await ctx.reply(`Введите максимальное значение для фильтрации по ${column}:`);
+                bot.on('text', async (msgCtx) => {
                     if (msgCtx.chat.id === ctx.chat.id) {
                         const maxValue = msgCtx.message.text;
-                        query[`sort[${column}]`] = { max: maxValue };
+                        query[`max${capitalizeFirstLetter(column)}`] = maxValue;
                         CLIENTS.set(userId, query);
-                        await ctx.reply(`Maximum sorting by ${column} set to ${maxValue}.`);
+                        await ctx.reply(`Максимальное значение для ${column} установлено: ${maxValue}.`);
                         await askContinueOrSave(ctx, userId, query);
                     }
                 });
             });
 
-            bot.action(/^filter_(.*)$/, async (ctx) => {
-                const column = ctx.match[1];
-                await ctx.reply(`Enter a value for filtering by ${column}:`);
-                bot.once('text', async (msgCtx) => {
-                    if (msgCtx.chat.id === ctx.chat.id) {
-                        const filterValue = msgCtx.message.text;
-                        query[column] = filterValue;
-                        CLIENTS.set(userId, query);
-                        await ctx.reply(`Filter by ${column} set to ${filterValue}.`);
-                        await askContinueOrSave(ctx, userId, query);
-                    }
-                });
-            });
-
-            bot.action(/^includes_(.*)$/, async (ctx) => {
+            // Изменение процентов
+            bot.action(new RegExp(`^includes_(.*)$`), async (ctx) => {
                 const column = ctx.match[1];
                 const changeActions = [
                     Markup.button.callback("Изменение за 5 секунд", `change5s_${column}`),
@@ -109,28 +118,68 @@ bot.command('add', async (ctx) => {
                     Markup.button.callback("Изменение за 1 минуту", `change1m_${column}`),
                     Markup.button.callback("Изменение за 1 час", `change1h_${column}`)
                 ];
-                const changeActionsKeyboard = changeActions.length > 2 ? chunk(changeActions, 2) : [changeActions];
-                await ctx.reply("Select change time (in percentage):", Markup.inlineKeyboard(changeActionsKeyboard));
+                const changeActionsKeyboard = chunk(changeActions, 2);
+                await ctx.reply("Выберите период изменения в процентах:", Markup.inlineKeyboard(changeActionsKeyboard));
 
-                bot.action(/^change(.*)_(.*)$/, async (ctx) => {
+                bot.action(new RegExp(`^change(.*)_(.*)$`), async (ctx) => {
                     const [time, column] = [ctx.match[1], ctx.match[2]];
                     const changeField = `${column}Change${time}`;
                     query[`includes[${column}]`] = `change${time}`;
-                    query[`sort[${changeField}]`] = "desc"; // Добавляем сортировку по изменению
                     CLIENTS.set(userId, query);
 
-                    await ctx.reply(`You selected change over ${time} for field ${column}.`);
-                    await askContinueOrSave(ctx, userId, query);
+                    // Фильтрация по min и max для нового поля изменений
+                    const filterActions = [
+                        Markup.button.callback(`Фильтр min ${changeField}`, `filter_min_${changeField}`),
+                        Markup.button.callback(`Фильтр max ${changeField}`, `filter_max_${changeField}`)
+                    ];
+                    const filterActionsKeyboard = chunk(filterActions, 2);
+                    await ctx.reply(`Изменение по ${changeField} добавлено. Выберите фильтр:`, Markup.inlineKeyboard(filterActionsKeyboard));
+
+                    // Фильтрация по min для changeField
+                    bot.action(new RegExp(`^filter_min_${changeField}$`), async (ctx) => {
+                        await ctx.reply(`Введите минимальное значение для фильтрации по ${changeField}:`);
+                        bot.on('text', async (msgCtx) => {
+                            if (msgCtx.chat.id === ctx.chat.id) {
+                                const minValue = msgCtx.message.text;
+                                query[`min${capitalizeFirstLetter(changeField)}`] = minValue;
+                                CLIENTS.set(userId, query);
+                                await ctx.reply(`Минимальное значение для ${changeField} установлено: ${minValue}.`);
+                                await askContinueOrSave(ctx, userId, query);
+                            }
+                        });
+                    });
+
+                    // Фильтрация по max для changeField
+                    bot.action(new RegExp(`^filter_max_${changeField}$`), async (ctx) => {
+                        await ctx.reply(`Введите максимальное значение для фильтрации по ${changeField}:`);
+                        bot.on('text', async (msgCtx) => {
+                            if (msgCtx.chat.id === ctx.chat.id) {
+                                const maxValue = msgCtx.message.text;
+                                query[`max${capitalizeFirstLetter(changeField)}`] = maxValue;
+                                CLIENTS.set(userId, query);
+                                await ctx.reply(`Максимальное значение для ${changeField} установлено: ${maxValue}.`);
+                                await askContinueOrSave(ctx, userId, query);
+                            }
+                        });
+                    });
                 });
             });
         });
     });
 });
 
-// Функция для продолжения или сохранения
+function capitalizeFirstLetter(string: string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
 
 bot.launch(() => {
     CLIENTS.forEach((query, userId) => {
         start(userId, query);
+				listen(userId, (data) => {
+					telegramQueue.add(async () => {
+						bot.telegram.sendMessage(userId, getMessageByItem(data));				
+					})
+				})
     });
 });
+
