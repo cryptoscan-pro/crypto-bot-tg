@@ -7,7 +7,7 @@ export async function askContinueOrSave(ctx, userId: string, query: Record<strin
     const saveButton = Markup.button.callback("Сохранить", "save");
     const keyboard = Markup.inlineKeyboard([[continueButton, saveButton]]);
 
-    await ctx.reply("Что хотите сделать дальше?", keyboard);
+    await ctx.reply("What would you like to do next?", keyboard);
 
     bot.action('continue', async (ctx) => {
         await ctx.answerCbQuery();
@@ -17,7 +17,6 @@ export async function askContinueOrSave(ctx, userId: string, query: Record<strin
     bot.action('save', async (ctx) => {
         await ctx.answerCbQuery();
         CLIENTS.set(userId, query);
-        await ctx.reply("Настройки сохранены!");
-        // Здесь можно завершить настройку
+        await ctx.reply("Settings saved!");
     });
 }
