@@ -50,11 +50,11 @@ bot.command('add', async (ctx) => {
         bot.action(new RegExp(`^column_(.*)$`), async (ctx) => {
             const selectedColumn = ctx.match[1];
             const actions = [
-                Markup.button.callback("Сортировка по убыванию", `sort_desc_${selectedColumn}`),
-                Markup.button.callback("Сортировка по возрастанию", `sort_asc_${selectedColumn}`),
-                Markup.button.callback("Фильтр по min", `filter_min_${selectedColumn}`),
-                Markup.button.callback("Фильтр по max", `filter_max_${selectedColumn}`),
-                Markup.button.callback("Изменение %", `includes_${selectedColumn}`)
+                Markup.button.callback("Sort Descending", `sort_desc_${selectedColumn}`),
+                Markup.button.callback("Sort Ascending", `sort_asc_${selectedColumn}`),
+                Markup.button.callback("Filter Min", `filter_min_${selectedColumn}`),
+                Markup.button.callback("Filter Max", `filter_max_${selectedColumn}`),
+                Markup.button.callback("Change %", `includes_${selectedColumn}`)
             ];
             const actionsKeyboard = chunk(actions, 2);
             await ctx.reply("Select an action:", Markup.inlineKeyboard(actionsKeyboard));
@@ -106,12 +106,12 @@ bot.command('add', async (ctx) => {
             bot.action(new RegExp(`^includes_(.*)$`), async (ctx) => {
                 const column = ctx.match[1];
                 const changeActions = [
-                    Markup.button.callback("Изменение за 5 секунд", `change5s_${column}`),
-                    Markup.button.callback("Изменение за 10 секунд", `change10s_${column}`),
-                    Markup.button.callback("Изменение за 15 секунд", `change15s_${column}`),
-                    Markup.button.callback("Изменение за 30 секунд", `change30s_${column}`),
-                    Markup.button.callback("Изменение за 1 минуту", `change1m_${column}`),
-                    Markup.button.callback("Изменение за 1 час", `change1h_${column}`)
+                    Markup.button.callback("Change in 5 seconds", `change5s_${column}`),
+                    Markup.button.callback("Change in 10 seconds", `change10s_${column}`),
+                    Markup.button.callback("Change in 15 seconds", `change15s_${column}`),
+                    Markup.button.callback("Change in 30 seconds", `change30s_${column}`),
+                    Markup.button.callback("Change in 1 minute", `change1m_${column}`),
+                    Markup.button.callback("Change in 1 hour", `change1h_${column}`)
                 ];
                 const changeActionsKeyboard = chunk(changeActions, 2);
                 await ctx.reply("Select the period of change in percentage:", Markup.inlineKeyboard(changeActionsKeyboard));
@@ -123,8 +123,8 @@ bot.command('add', async (ctx) => {
                     CLIENTS.set(userId, query);
 
                     const filterActions = [
-                        Markup.button.callback(`Фильтр min ${changeField}`, `filter_min_${changeField}`),
-                        Markup.button.callback(`Фильтр max ${changeField}`, `filter_max_${changeField}`)
+                        Markup.button.callback(`Filter min ${changeField}`, `filter_min_${changeField}`),
+                        Markup.button.callback(`Filter max ${changeField}`, `filter_max_${changeField}`)
                     ];
                     const filterActionsKeyboard = chunk(filterActions, 2);
                     await ctx.reply(`Change by ${changeField} added. Select a filter:`, Markup.inlineKeyboard(filterActionsKeyboard));
