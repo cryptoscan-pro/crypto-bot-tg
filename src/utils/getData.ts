@@ -11,7 +11,12 @@ export async function getData(query: Record<string, string>) {
 			return res;
 		})
 		.then((res) => res.json())
-		.then((res) => res.data)
+		.then((res) => {
+			if (res.quota === 0) {
+				throw new Error('Quota exceeded. Please try again later or buy subscription in https://cryptoscan.pro');
+			}
+			return res.data
+		})
 		.catch((e) => {
 			console.error(e)
 			return [];
@@ -30,7 +35,12 @@ export const getDataTypes = pMemoize(async (): Promise<string[]> => {
 			return res;
 		})
 		.then((res) => res.json())
-		.then((res) => Object.keys(res.slice))
+		.then((res) => {
+			if (res.quota === 0) {
+				throw new Error('Quota exceeded. Please try again later or buy subscription in https://cryptoscan.pro');
+			}
+			return Object.keys(res.slice)
+		})
 		.catch((e) => {
 			console.error(e)
 			return [];
@@ -48,7 +58,12 @@ export const getTypeColumns = pMemoize(async (type: string): Promise<string[]> =
 			return res;
 		})
     .then((res) => res.json())
-    .then((res) => Object.keys(res.data[0]))
+		.then((res) => {
+			if (res.quota === 0) {
+				throw new Error('Quota exceeded. Please try again later or buy subscription in https://cryptoscan.pro');
+			}
+			return Object.keys(res.data[0])
+		})
     .catch((e) => {
       console.error(e)
       return [];
