@@ -19,4 +19,4 @@ stop:
 pull:
 	git pull
 
-update: pull, stop, build, stop, run
+update: pull stop build stop run
