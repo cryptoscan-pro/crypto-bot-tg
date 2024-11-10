@@ -20,7 +20,7 @@ export function startHttpListening(): Result {
     interval: QUEUE_INTERVAL,
   });
 
-  const eventEmitter = new EventEmitter(); // Создаем экземпляр EventEmitter
+  const eventEmitter = new EventEmitter();
 
   const stop = (id: string) => {
 		clearInterval(clients.get(id));

@@ -59,7 +59,6 @@ bot.command('add', async (ctx) => {
             const actionsKeyboard = chunk(actions, 2);
             await ctx.reply("Select an action:", Markup.inlineKeyboard(actionsKeyboard));
 
-            // Сортировка по убыванию
             bot.action(new RegExp(`^sort_desc_(.*)$`), async (ctx) => {
                 const column = ctx.match[1];
                 query[`sort[${column}]`] = "desc";
@@ -68,7 +67,6 @@ bot.command('add', async (ctx) => {
                 await askContinueOrSave(ctx, userId, query);
             });
 
-            // Сортировка по возрастанию
             bot.action(new RegExp(`^sort_asc_(.*)$`), async (ctx) => {
                 const column = ctx.match[1];
                 query[`sort[${column}]`] = "asc";
@@ -77,7 +75,6 @@ bot.command('add', async (ctx) => {
                 await askContinueOrSave(ctx, userId, query);
             });
 
-            // Фильтрация по min
             bot.action(new RegExp(`^filter_min_(.*)$`), async (ctx) => {
                 const column = ctx.match[1];
                 await ctx.reply(`Enter the minimum value for filtering by ${column}:`);
@@ -92,7 +89,6 @@ bot.command('add', async (ctx) => {
                 });
             });
 
-            // Фильтрация по max
             bot.action(new RegExp(`^filter_max_(.*)$`), async (ctx) => {
                 const column = ctx.match[1];
                 await ctx.reply(`Enter the maximum value for filtering by ${column}:`);
@@ -107,7 +103,6 @@ bot.command('add', async (ctx) => {
                 });
             });
 
-            // Изменение процентов
             bot.action(new RegExp(`^includes_(.*)$`), async (ctx) => {
                 const column = ctx.match[1];
                 const changeActions = [
@@ -127,7 +122,6 @@ bot.command('add', async (ctx) => {
                     query[`includes[${column}]`] = `change${time}`;
                     CLIENTS.set(userId, query);
 
-                    // Фильтрация по min и max для нового поля изменений
                     const filterActions = [
                         Markup.button.callback(`Фильтр min ${changeField}`, `filter_min_${changeField}`),
                         Markup.button.callback(`Фильтр max ${changeField}`, `filter_max_${changeField}`)
@@ -135,7 +129,6 @@ bot.command('add', async (ctx) => {
                     const filterActionsKeyboard = chunk(filterActions, 2);
                     await ctx.reply(`Change by ${changeField} added. Select a filter:`, Markup.inlineKeyboard(filterActionsKeyboard));
 
-                    // Фильтрация по min для changeField
                     bot.action(new RegExp(`^filter_min_${changeField}$`), async (ctx) => {
                         await ctx.reply(`Enter the minimum value for filtering by ${changeField}:`);
                         bot.on('text', async (msgCtx) => {
@@ -149,7 +142,6 @@ bot.command('add', async (ctx) => {
                         });
                     });
 
-                    // Фильтрация по max для changeField
                     bot.action(new RegExp(`^filter_max_${changeField}$`), async (ctx) => {
                         await ctx.reply(`Enter the maximum value for filtering by ${changeField}:`);
                         bot.on('text', async (msgCtx) => {
