@@ -1,6 +1,6 @@
 # @cryptoscan/cryptobot-tg
 
-![Example Image](./assets/example.png)
+<img src="./assets/example.png" alt="Example Image" style="height:200px;">
 
 ## Description
 
