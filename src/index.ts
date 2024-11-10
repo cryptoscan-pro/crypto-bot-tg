@@ -64,7 +64,8 @@ bot.command('add', async (ctx) => {
                 query[`sort[${column}]`] = "desc";
                 CLIENTS.set(userId, query);
                 await ctx.reply(`Sorting by ${column} in descending order set.`);
-                await askContinueOrSave(ctx, userId, query);
+                const continueButton = Markup.button.callback("Continue", "continue");
+                const saveButton = Markup.button.callback("Save", "save");
             });
 
             bot.action(new RegExp(`^sort_asc_(.*)$`), async (ctx) => {
