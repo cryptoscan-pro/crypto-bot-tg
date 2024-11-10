@@ -11,7 +11,8 @@ import {
   TELEGRAM_QUEUE_CONCURRENCY,
   TELEGRAM_QUEUE_INTERVAL_CAP,
   TELEGRAM_QUEUE_INTERVAL,
-  INTERVAL_TIME
+  INTERVAL_TIME,
+  API_URL
 } from "./utils/constants";
 import { LimitedSet } from "./utils/LimitedSet";
 import { getMessageByItem } from "./utils/getMessageByItem";
