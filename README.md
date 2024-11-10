@@ -54,9 +54,23 @@ After starting the bot, you can interact with it via Telegram. The command flow 
 The option sets in the bot are used to customize how data is retrieved and displayed. They allow users to:
 
 - **Select Data Types**: Choose the type of cryptocurrency data to interact with, such as `types`, `arbitrage`, `contracts`, `networks`.
-- **Choose Fields**: Specify which fields to sort or filter, like `id`, `type`, `exchange`, `symbol`, `name`, `price`, `volume`, `createdAt`.
+- **Choose Fields**: Specify which fields to sort or filter:
+  - `id`: Unique identifier for the data entry.
+  - `type`: The type of cryptocurrency data.
+  - `exchange`: The exchange platform where the cryptocurrency is traded.
+  - `symbol`: The ticker symbol representing the cryptocurrency.
+  - `name`: The full name of the cryptocurrency.
+  - `price`: The current price of the cryptocurrency.
+  - `volume`: The trading volume of the cryptocurrency.
+  - `createdAt`: The timestamp when the data entry was created.
 - **Apply Actions**: Determine how to manipulate the data, including sorting, filtering, or changing percentages. This helps in organizing and analyzing data effectively.
-- **Set Change Intervals**: When using the `change %` option, select intervals like `change5s`, `10s`, `15s`, `30s`, `1 min`, `1 hour` to monitor data changes over time.
+- **Set Change Intervals**: When using the `change %` option, select intervals to monitor data changes over time:
+  - `5s`: Track changes in price over 5 seconds.
+  - `10s`: Track changes in price over 10 seconds.
+  - `15s`: Track changes in price over 15 seconds.
+  - `30s`: Track changes in price over 30 seconds.
+  - `1 min`: Track changes in price over 1 minute.
+  - `1 hour`: Track changes in price over 1 hour.
 
 These options provide flexibility in data handling, enabling users to tailor the bot's functionality to their specific needs.
 
