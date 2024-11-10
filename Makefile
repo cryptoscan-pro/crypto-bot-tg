@@ -33,8 +33,7 @@ run:
 stop:
 	docker stop $(DOCKER_CONTAINER_NAME) && docker rm $(DOCKER_CONTAINER_NAME)
 
-update:
+pull:
 	git pull
-	make stop
-	make build
-	make run
+
+update: pull, stop, build, run
