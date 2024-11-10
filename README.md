@@ -1,6 +1,6 @@
-# @cryptoscan/cryptobot-tg
+# @cryptoscan/crypto-bot-tg
 
-<img src="./assets/example.png" alt="Example Image" style="height:200px;">
+<img src="./assets/example.png" alt="Example Image" style="height:400px;">
 
 ## Description
 
