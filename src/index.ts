@@ -3,6 +3,8 @@ import "dotenv/config";
 import FileMap from "@javeoff/file-map";
 import PQueue from "p-queue";
 import { LimitedSet } from "./utils/LimitedSet";
+import { getMessageByItem } from "./utils/getMessageByItem";
+import { getData } from "./utils/getData";
 
 const listeners = new FileMap('./listeners.json');
 const sentIds = new LimitedSet<string>(20);
@@ -17,32 +19,7 @@ const telegramQueue = new PQueue({
 	interval: 100,
 })
 
-function getMessageByItem(item: Record<string, string | number>) {
-	return Object.entries(item)
-		.map(([key, value]) => {
-			if (!value) {
-				return;
-			}
 
-			return `${key}: ${value}`
-		})
-		.filter((v) => !!v)
-		.join('\n');
-}
-
-export async function getData(query: Record<string, string>) {
-	console.log(query)
-	return fetch("https://api.cryptoscan.pro?" + new URLSearchParams(query))
-		.then(async (res) => {
-			if (!res.ok) {
-				throw new Error(await res.text());
-			}
-
-			return res;
-		})
-		.then((res) => res.json())
-		.then((res) => res.data)
-}
 
 setInterval(() => {
 	for (const [id, query] of Array.from(listeners.entries())) {
