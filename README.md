@@ -8,7 +8,7 @@
 
 1. Clone the repository:
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:cryptoscan-pro/crypto-bot-tg.git
    ```
 2. Navigate to the project directory:
    ```bash
@@ -32,7 +32,17 @@ npm start
 
 ## Usage
 
-After starting the bot, you can interact with it via Telegram. The bot will prompt you to select a data type, a field for sorting or filtering, and a change period.
+After starting the bot, you can interact with it via Telegram. The command flow is as follows:
+
+1. Start the bot with the command `/start`.
+2. The bot will display buttons for selecting a data type, such as `types`, `arbitrage`, `contracts`, `networks`.
+3. Next, choose a field for sorting or filtering, such as `id`, `type`, `exchange`, `symbol`, `name`, `price`, `volume`, `createdAt`.
+4. Then, select an action: sorting, filtering, or change percentage. Options include:
+   - For numbers: `sort desc`, `sort asc`, `filter min`, `filter max`, `change %`.
+   - For strings: `filter`.
+   - Sorting is available for both types.
+5. If `change %` is selected, choose an interval: `change5s`, `10s`, `15s`, `30s`, `1 min`, `1 hour`.
+6. Finally, decide whether to continue adding options or save the configuration. The bot will then start listening for changes.
 
 ## Key Features
 
