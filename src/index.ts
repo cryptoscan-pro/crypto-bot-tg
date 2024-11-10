@@ -2,22 +2,33 @@ import { Telegraf } from "telegraf";
 import "dotenv/config";
 import FileMap from "@javeoff/file-map";
 import PQueue from "p-queue";
+import {
+  LISTENERS_FILE_PATH,
+  SENT_IDS_LIMIT,
+  QUEUE_CONCURRENCY,
+  QUEUE_INTERVAL_CAP,
+  QUEUE_INTERVAL,
+  TELEGRAM_QUEUE_CONCURRENCY,
+  TELEGRAM_QUEUE_INTERVAL_CAP,
+  TELEGRAM_QUEUE_INTERVAL,
+  INTERVAL_TIME
+} from "./utils/constants";
 import { LimitedSet } from "./utils/LimitedSet";
 import { getMessageByItem } from "./utils/getMessageByItem";
 import { getData } from "./utils/getData";
 
-const listeners = new FileMap('./listeners.json');
-const sentIds = new LimitedSet<string>(20);
+const listeners = new FileMap(LISTENERS_FILE_PATH);
+const sentIds = new LimitedSet<string>(SENT_IDS_LIMIT);
 const queue = new PQueue({
-	concurrency: 10,
-	intervalCap: 1,
-	interval: 50,
-})
+	concurrency: QUEUE_CONCURRENCY,
+	intervalCap: QUEUE_INTERVAL_CAP,
+	interval: QUEUE_INTERVAL,
+});
 const telegramQueue = new PQueue({
-	concurrency: 1,
-	intervalCap: 1,
-	interval: 100,
-})
+	concurrency: TELEGRAM_QUEUE_CONCURRENCY,
+	intervalCap: TELEGRAM_QUEUE_INTERVAL_CAP,
+	interval: TELEGRAM_QUEUE_INTERVAL,
+});
 
 
 
@@ -39,7 +50,7 @@ setInterval(() => {
 			}
 		});
 	}
-}, 5000)
+}, INTERVAL_TIME);
 
 const bot = new Telegraf(process.env.BOT_TOKEN!);
 
