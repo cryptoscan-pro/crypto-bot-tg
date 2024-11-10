@@ -38,7 +38,7 @@ export function startHttpListening(): Result {
           }
 
           sentIds.add(itemId);
-          eventEmitter.emit(id, item); // Эмитим событие с данными
+          eventEmitter.emit(id, item);
         }
       });
     }, INTERVAL_TIME);

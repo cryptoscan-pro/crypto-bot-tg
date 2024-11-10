@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events';
 import WebSocketReconnect from '@javeoff/ws-reconnect';
-import { CLIENTS_FILE_PATH } from "../utils/constants";
 import { parseObjectValues } from '../utils/parseObjectValues';
 
 interface Result {
