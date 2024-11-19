@@ -85,13 +85,21 @@ export function startWebsocketListening(): Result {
 	};
 
 	const stop = (id: string) => {
+		console.log(`Stopping websocket for id: ${id}`);
 		const ws = clients.get(id);
 		if (ws) {
-			ws.close();
+			console.log(`Found websocket connection for id: ${id}`);
+			ws.removeAllListeners();
+			ws.close(1000, 'Stopped by user');
+			ws.destroy();
 			clients.delete(id);
+			console.log(`Websocket connection closed for id: ${id}`);
+		} else {
+			console.log(`No websocket connection found for id: ${id}`);
 		}
-		messageHistories.delete(id); // Clear message history
+		messageHistories.delete(id);
 		eventEmitter.removeAllListeners(id);
+		console.log(`Cleanup completed for id: ${id}`);
 	};
 
 	return {
