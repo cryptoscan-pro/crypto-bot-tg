@@ -105,7 +105,6 @@ function handleActions() {
 		}
 	});
 
-	// Сортировка по возрастанию
 	bot.action(/^sort_asc_(.*)$/, async (ctx) => {
 		const column = ctx.match[1];
 		if (ctx.session?.editingConfig) {
@@ -117,7 +116,6 @@ function handleActions() {
 		}
 	});
 
-	// Global text handler
 	bot.on('text', async (ctx) => {
 		if (!pendingHandler) return;
 
@@ -186,11 +184,9 @@ function handleActions() {
                     let channelId = text.trim();
                     
                     try {
-                        // Если ID начинается с -100, это числовой формат
                         if (channelId.startsWith('-100')) {
                             await ctx.telegram.getChat(channelId);
                         } else {
-                            // Для текстового формата добавляем @ если нужно
                             if (!channelId.startsWith('@')) {
                                 channelId = `@${channelId}`;
                             }
