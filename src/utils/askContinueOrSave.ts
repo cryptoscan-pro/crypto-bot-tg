@@ -11,8 +11,8 @@ export async function askContinueOrSave(
 	start: (id: string, query: Record<string, string>) => void,
 	listen: (id: string, onData: (data: any) => void) => void
 ) {
-	const continueButton = Markup.button.callback("Продолжить", "continue");
-	const saveButton = Markup.button.callback("Сохранить", "save");
+	const continueButton = Markup.button.callback("Continue", "continue");
+	const saveButton = Markup.button.callback("Save", "save");
 	const keyboard = Markup.inlineKeyboard([[continueButton, saveButton]]);
 
 	await ctx.reply("What would you like to do next?", keyboard);

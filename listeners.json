@@ -1,7 +1,0 @@
-{
-  "6160825929": {
-    "includes[price]": "change10s",
-    "sort[priceChange10s]": "desc",
-    "minPriceChange10s": "5"
-  }
-}

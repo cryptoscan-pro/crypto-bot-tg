@@ -9,6 +9,9 @@ export const parseValue = (key: string, value: string | number) => {
 	if (key.toLowerCase().includes('volume')) {
 		return `$${getBigNumber(Number(value))}`;
 	}
+	if (key.toLowerCase().includes('liquidity')) {
+		return `$${getBigNumber(Number(value))}`;
+	}
 	if (key.toLowerCase().includes('price')) {
     return `$${new BigNumber(value).toFixed()}`;
   }
