@@ -308,6 +308,29 @@ function handleActions() {
 	});
 }
 
+bot.launch(() => {
+	CLIENTS.forEach((config, userId) => {
+		if (!config.destination || !config.destination.type || !config.destination.id) {
+			console.error(`Invalid config for user ${userId}: missing destination`);
+			return;
+		}
+		start(userId, config.query);
+		listen(userId, (data) => {
+			telegramQueue.add(async () => {
+				const destination = config.destination.type === 'private' ? userId : config.destination.id;
+				const parseMode = 'Markdown';
+				const message = getMessageByItem(data.data);
+				
+				if (config.destination.type === 'private') {
+					bot.telegram.sendMessage(destination, message, { parse_mode: parseMode });
+				} else {
+					bot.telegram.sendMessage(`@${destination}`, message, { parse_mode: parseMode });
+				}
+			});
+		});
+	});
+});
+
 async function askContinueOrSave(ctx: any) {
 	const continueButton = Markup.button.callback("Продолжить", "continue");
 	const saveButton = Markup.button.callback("Сохранить", "save");
@@ -428,22 +451,3 @@ function createMessageHandler(config: any) {
 		}
 	};
 }
-
-bot.launch(() => {
-	CLIENTS.forEach((config, userId) => {
-		start(userId, config.query);
-		listen(userId, (data) => {
-			telegramQueue.add(async () => {
-				const destination = config.destination.type === 'private' ? userId : config.destination.id;
-				const parseMode = 'Markdown';
-				const message = getMessageByItem(data.data);
-				
-				if (config.destination.type === 'private') {
-					bot.telegram.sendMessage(destination, message, { parse_mode: parseMode });
-				} else {
-					bot.telegram.sendMessage(`@${destination}`, message, { parse_mode: parseMode });
-				}
-			});
-		});
-	});
-});
