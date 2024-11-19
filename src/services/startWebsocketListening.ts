@@ -2,6 +2,11 @@ import { EventEmitter } from 'events';
 import WebSocketReconnect from '@javeoff/ws-reconnect';
 import { parseObjectValues } from '../utils/parseObjectValues';
 
+interface MessageHistory {
+  id: string;
+  timestamp: number;
+}
+
 interface Result {
 	start: (id: string, query: Record<string, string | number>) => void;
 	stop: (id: string) => void;
@@ -11,6 +16,17 @@ interface Result {
 export function startWebsocketListening(): Result {
 	const clients = new Map<string, WebSocketReconnect>();
 	const eventEmitter = new EventEmitter();
+	const messageHistories = new Map<string, MessageHistory[]>();
+	const MESSAGE_TIMEOUT = 60 * 1000; // 1 minute in milliseconds
+
+	const cleanupOldMessages = (wsId: string) => {
+		const history = messageHistories.get(wsId);
+		if (!history) return;
+		
+		const now = Date.now();
+		const filtered = history.filter(msg => (now - msg.timestamp) < MESSAGE_TIMEOUT);
+		messageHistories.set(wsId, filtered);
+	};
 
 	const start = (id: string, query: Record<string, string | number>) => {
 		const ws = new WebSocketReconnect('wss://api.cryptoscan.pro/listen');
@@ -31,7 +47,33 @@ export function startWebsocketListening(): Result {
 					console.error('Quota exceeded. Please try again later or buy subscription in https://cryptoscan.pro');
 					return;
 				}
-				eventEmitter.emit(id, parsedData);
+
+				// Check if message has an id
+				if (!parsedData.id) {
+					console.error('Message has no id:', parsedData);
+					return;
+				}
+
+				// Cleanup old messages
+				cleanupOldMessages(id);
+
+				// Get message history for this connection
+				const history = messageHistories.get(id) || [];
+				
+				// Check if this message was recently received
+				const isDuplicate = history.some(msg => msg.id === parsedData.id);
+				
+				if (!isDuplicate) {
+					// Add new message to history
+					history.push({
+						id: parsedData.id,
+						timestamp: Date.now()
+					});
+					messageHistories.set(id, history);
+					
+					// Only emit if not a duplicate
+					eventEmitter.emit(id, parsedData);
+				}
 			} catch (e) {
 				console.error('Error processing websocket message:', e);
 			}
@@ -48,6 +90,7 @@ export function startWebsocketListening(): Result {
 			ws.close();
 			clients.delete(id);
 		}
+		messageHistories.delete(id); // Clear message history
 		eventEmitter.removeAllListeners(id);
 	};
 
