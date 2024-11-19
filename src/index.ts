@@ -2,6 +2,14 @@
 import { session } from 'telegraf';
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
 
+type PendingHandler = {
+    type: 'filter_min' | 'filter_max' | 'config_name';
+    column?: string;
+    ctx: any;
+};
+
+let pendingHandler: PendingHandler | null = null;
+
 // Initialize session middleware
 bot.use(session());
 import { listWebsockets, manageWebsocket } from './commands/websocket';
