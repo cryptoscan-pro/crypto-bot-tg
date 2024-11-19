@@ -5,14 +5,15 @@ import { generateId } from '../utils/generateId';
 
 export async function listWebsockets(ctx: Context) {
   const userId = String(ctx.from!.id);
-  const configs = CLIENTS.get(userId) || [];
+  const configs = CLIENTS.get(userId);
+  const configsArray = Array.isArray(configs) ? configs : [];
   
-  if (configs.length === 0) {
+  if (configsArray.length === 0) {
     await ctx.reply('У вас нет активных конфигураций');
     return;
   }
 
-  const buttons = configs.map(config => [
+  const buttons = configsArray.map(config => [
     Markup.button.callback(
       `${config.isActive ? '🟢' : '🔴'} ${config.name} (${config.destination.type})`,
       `manage_${config.id}`
