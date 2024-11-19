@@ -49,7 +49,7 @@ export function startWebsocketListening(): Result {
 				}
 
 				// Check if message has an id
-				if (!parsedData.id) {
+				if (!parsedData.data.id) {
 					console.error('Message has no id:', parsedData);
 					return;
 				}
@@ -61,12 +61,12 @@ export function startWebsocketListening(): Result {
 				const history = messageHistories.get(id) || [];
 				
 				// Check if this message was recently received
-				const isDuplicate = history.some(msg => msg.id === parsedData.id);
+				const isDuplicate = history.some(msg => msg.id === parsedData.data.id);
 				
 				if (!isDuplicate) {
 					// Add new message to history
 					history.push({
-						id: parsedData.id,
+						id: parsedData.data.id,
 						timestamp: Date.now()
 					});
 					messageHistories.set(id, history);
