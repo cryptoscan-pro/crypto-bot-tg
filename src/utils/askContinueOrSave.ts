@@ -12,6 +12,8 @@ export async function askContinueOrSave(
   userId: string,
   query: Record<string, string>
 ) {
+  // Remove any existing handlers first
+  bot.removeAllListeners('text');
   await ctx.reply(
     'Что делаем дальше?',
     Markup.inlineKeyboard([
