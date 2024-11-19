@@ -3,7 +3,7 @@ import { session } from 'telegraf';
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
 
 type PendingHandler = {
-    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id';
+    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt';
     column?: string;
     ctx: any;
 };
@@ -148,7 +148,7 @@ function handleActions() {
 			}
 			case 'config_name': {
 				if (pendingHandler.ctx.session?.editingConfig) {
-					const { configId, query, destination } = pendingHandler.ctx.session.editingConfig;
+					const { configId, query, destination, aiPrompt } = pendingHandler.ctx.session.editingConfig;
 					pendingHandler.ctx.session.editingConfig.name = text;
 
 					const userId = String(ctx.from.id);
@@ -158,7 +158,8 @@ function handleActions() {
 						query,
 						destination,
 						isActive: true,
-						name: text
+						name: text,
+						aiPrompt
 					});
 					CLIENTS.set(userId, configs);
 
@@ -504,7 +505,37 @@ async function askContinueOrSave(ctx: any) {
             return;
         }
 
-        // Show destination choice buttons
+        // Ask about AI processing first
+        await ctx.reply(
+            "Использовать ИИ для обработки сообщений?",
+            Markup.inlineKeyboard([
+                [Markup.button.callback('Да', 'ai_yes')],
+                [Markup.button.callback('Нет', 'ai_no')]
+            ])
+        );
+    });
+
+    // Add new action handlers for AI choice
+    bot.action('ai_yes', async (ctx) => {
+        if (!ctx.session?.editingConfig) {
+            await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+            return;
+        }
+
+        pendingHandler = {
+            type: 'ai_prompt',
+            ctx
+        };
+        await ctx.reply("Введите промпт для обработки сообщений:");
+    });
+
+    bot.action('ai_no', async (ctx) => {
+        if (!ctx.session?.editingConfig) {
+            await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+            return;
+        }
+
+        // Continue with destination selection
         await ctx.reply(
             "Выберите куда отправлять уведомления:",
             Markup.inlineKeyboard([
@@ -550,9 +581,19 @@ async function askContinueOrSave(ctx: any) {
 }
 
 function createMessageHandler(config: any) {
-    return (data: any) => {
-        const message = getMessageByItem(data.data);
+    return async (data: any) => {
+        let message = getMessageByItem(data.data);
         console.log(`[WebSocket] Получено сообщение для конфигурации "${config.name}"`);
+
+        // Process with AI if prompt is configured
+        if (config.aiPrompt) {
+            try {
+                message = await formatWithGPT(message, config.aiPrompt);
+            } catch (error) {
+                console.error('[AI] Error processing message:', error);
+                // Continue with original message if AI processing fails
+            }
+        }
 
         if (config.destination.type === 'private') {
             telegramQueue.add(async () => {
