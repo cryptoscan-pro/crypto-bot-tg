@@ -45,7 +45,8 @@ export async function manageWebsocket(ctx: Context, configId: string) {
         config.isActive ? '🔴 Выключить' : '🟢 Включить', 
         `toggle_${configId}`
       )],
-      [Markup.button.callback('✏️ Редактировать', `edit_${configId}`)],
+      [Markup.button.callback('✏️ Редактировать имя', `edit_${configId}`)],
+      [Markup.button.callback('⚙️ Редактировать параметры', `edit_query_${configId}`)],
       [Markup.button.callback('🗑 Удалить', `delete_${configId}`)],
       [Markup.button.callback('« Назад', 'list_websockets')]
     ])

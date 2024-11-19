@@ -141,7 +141,30 @@ bot.start(async (ctx) => {
 								query[`min${capitalizeFirstLetter(changeField)}`] = minValue;
 								CLIENTS.set(userId, query);
 								await ctx.reply(`Minimum value for ${changeField} set: ${minValue}.`);
-								await askContinueOrSave(ctx, userId, query);
+								    if (ctx.session?.editingConfig) {
+								      // We're editing an existing config
+								      const { configId, destination, name } = ctx.session.editingConfig;
+								      const configs = CLIENTS.get(userId) || [];
+								      const configIndex = configs.findIndex(c => c.id === configId);
+          
+								      if (configIndex !== -1) {
+								        configs[configIndex] = {
+								          ...configs[configIndex],
+								          query: query
+								        };
+								        CLIENTS.set(userId, configs);
+            
+								        // Restart the websocket with new query
+								        start(configId, query);
+								        listen(configId, createMessageHandler(configs[configIndex]));
+            
+								        await ctx.reply('Configuration updated successfully!');
+								        await listWebsockets(ctx);
+								        ctx.session.editingConfig = null;
+								      }
+								    } else {
+								      await askContinueOrSave(ctx, userId, query);
+								    }
 							}
 						});
 					});
@@ -167,6 +190,38 @@ bot.start(async (ctx) => {
 function capitalizeFirstLetter(string: string) {
 	return string.charAt(0).toUpperCase() + string.slice(1);
 }
+
+bot.action(/^edit_query_(.+)$/, async (ctx) => {
+  const configId = ctx.match[1];
+  const userId = String(ctx.from.id);
+  const configs = CLIENTS.get(userId) || [];
+  const config = configs.find(c => c.id === configId);
+
+  if (!config) {
+    await ctx.reply('Configuration not found');
+    return;
+  }
+
+  // Stop current listening
+  stop(configId);
+
+  // Start new parameter selection flow with existing query
+  let query = {...config.query};
+  const dataTypes = await getDataTypes();
+  const typeButtons = dataTypes.map(type => Markup.button.callback(type, `type_${type}`));
+  const typeKeyboard = typeButtons.length > 3 ? chunk(typeButtons, 3) : [typeButtons];
+  await ctx.reply("Select data type to modify:", Markup.inlineKeyboard(typeKeyboard));
+
+  // Save the existing config details in session
+  ctx.session = {
+    editingConfig: {
+      configId,
+      query,
+      destination: config.destination,
+      name: config.name
+    }
+  };
+});
 
 bot.launch(() => {
 	CLIENTS.forEach((query, userId) => {
