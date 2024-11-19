@@ -438,136 +438,97 @@ bot.launch(() => {
 });
 
 async function askContinueOrSave(ctx: any) {
-	const continueButton = Markup.button.callback("Продолжить", "continue");
-	const saveButton = Markup.button.callback("Сохранить", "save");
-	await ctx.reply("Что вы хотите сделать дальше?", Markup.inlineKeyboard([
-		[continueButton, saveButton]
-	]));
+    const continueButton = Markup.button.callback("Продолжить", "continue");
+    const saveButton = Markup.button.callback("Сохранить", "save");
+    await ctx.reply("Что вы хотите сделать дальше?", Markup.inlineKeyboard([
+        [continueButton, saveButton]
+    ]));
 
-	// Обработчик продолжения
-	bot.action('continue', async (ctx) => {
-		const currentType = ctx.session?.editingConfig?.query?.type;
-		
-		if (!currentType) {
-			await ctx.reply("Ошибка: тип данных не найден. Пожалуйста, начните заново.");
-			return;
-		}
+    // Обработчик продолжения
+    bot.action('continue', async (ctx) => {
+        const currentType = ctx.session?.editingConfig?.query?.type;
+        
+        if (!currentType) {
+            await ctx.reply("Ошибка: тип данных не найден. Пожалуйста, начните заново.");
+            return;
+        }
 
-		// Получаем стандартные колонки для текущего типа данных
-		const standardColumns = await getTypeColumns(currentType);
-		
-		// Ищем поля с изменением процента в текущем query
-		const percentageFields = Object.entries(ctx.session?.editingConfig?.query || {})
-			.filter(([key]) => key.startsWith('includes['))
-			.map(([key, value]) => {
-				const column = key.match(/includes\[(.*?)\]/)?.[1];
-				if (column && typeof value === 'string') {
-					// Преобразуем 'change10s' в 'priceChange10s'
-					return `${column}${value.charAt(0).toUpperCase()}${value.slice(1)}`;
-				}
-				return null;
-			})
-			.filter(Boolean);
+        // Получаем стандартные колонки для текущего типа данных
+        const standardColumns = await getTypeColumns(currentType);
+        
+        // Ищем поля с изменением процента в текущем query
+        const percentageFields = Object.entries(ctx.session?.editingConfig?.query || {})
+            .filter(([key]) => key.startsWith('includes['))
+            .map(([key, value]) => {
+                const column = key.match(/includes\[(.*?)\]/)?.[1];
+                if (column && typeof value === 'string') {
+                    // Преобразуем 'change10s' в 'priceChange10s'
+                    return `${column}${value.charAt(0).toUpperCase()}${value.slice(1)}`;
+                }
+                return null;
+            })
+            .filter(Boolean);
 
-		// Объединяем стандартные колонки с полями изменения процента
-		const allColumns = [...standardColumns, ...percentageFields];
-		
-		// Создаем кнопки для всех полей
-		const columnButtons = allColumns.map(col => Markup.button.callback(col, `column_${col}`));
-		const columnKeyboard = chunk(columnButtons, 3);
-		
-		await ctx.reply("Select a field for filtering or sorting:", Markup.inlineKeyboard(columnKeyboard));
-	});
+        // Объединяем стандартные колонки с полями изменения процента
+        const allColumns = [...standardColumns, ...percentageFields];
+        
+        // Создаем кнопки для всех полей
+        const columnButtons = allColumns.map(col => Markup.button.callback(col, `column_${col}`));
+        const columnKeyboard = chunk(columnButtons, 3);
+        
+        await ctx.reply("Select a field for filtering or sorting:", Markup.inlineKeyboard(columnKeyboard));
+    });
 
-	// Обработчик сохранения
-	bot.action('save', async (ctx) => {
-		if (!ctx.session?.editingConfig) {
-			await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
-			return;
-		}
+    // Обработчик сохранения
+    bot.action('save', async (ctx) => {
+        if (!ctx.session?.editingConfig) {
+            await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+            return;
+        }
 
-		// Show destination choice buttons
-		await ctx.reply(
-			"Выберите куда отправлять уведомления:",
-			Markup.inlineKeyboard([
-				[Markup.button.callback('📱 Личные сообщения', 'dest_private')],
-				[Markup.button.callback('📢 Канал', 'dest_channel')]
-			])
-		);
+        // Show destination choice buttons
+        await ctx.reply(
+            "Выберите куда отправлять уведомления:",
+            Markup.inlineKeyboard([
+                [Markup.button.callback('📱 Личные сообщения', 'dest_private')],
+                [Markup.button.callback('📢 Канал', 'dest_channel')]
+            ])
+        );
+    });
 
-	});
+    // Handler for private messages choice
+    bot.action('dest_private', async (ctx) => {
+        if (!ctx.session?.editingConfig) {
+            await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+            return;
+        }
 
-	// Handler for private messages choice
-	bot.action('dest_private', async (ctx) => {
-		if (!ctx.session?.editingConfig) {
-			await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
-			return;
-		}
+        ctx.session.editingConfig.destination = {
+            type: 'private',
+            id: String(ctx.from.id)
+        };
 
-		ctx.session.editingConfig.destination = {
-			type: 'private',
-			id: String(ctx.from.id)
-		};
+        // Ask for configuration name
+        pendingHandler = {
+            type: 'config_name',
+            ctx
+        };
+        await ctx.reply("Введите имя для конфигурации:");
+    });
 
-		// Ask for configuration name
-		pendingHandler = {
-			type: 'config_name',
-			ctx
-		};
-		await ctx.reply("Введите имя для конфигурации:");
-	});
+    // Handler for channel choice
+    bot.action('dest_channel', async (ctx) => {
+        if (!ctx.session?.editingConfig) {
+            await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+            return;
+        }
 
-	// Handler for channel choice
-	bot.action('dest_channel', async (ctx) => {
-		if (!ctx.session?.editingConfig) {
-			await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
-			return;
-		}
-
-		pendingHandler = {
-			type: 'channel_id',
-			ctx
-		};
-		await ctx.reply("Введите ID канала (без символа @):");
-	});
-
-	const userId = String(ctx.from.id);
-	const configs = CLIENTS.get(userId) || [];
-	const existingConfigIndex = configs.findIndex(c => c.id === configId);
-
-		const newConfig = {
-			id: configId,
-			query,
-			destination: {
-				type: destination.type,
-				id: destination.id
-			},
-			isActive: true,
-			name
-		};
-
-		if (existingConfigIndex !== -1) {
-			configs[existingConfigIndex] = newConfig;
-		} else {
-			configs.push(newConfig);
-		}
-
-		console.log('Saving config:', newConfig);
-		CLIENTS.set(userId, configs);
-
-		// Запуск прослушивания
-		start(configId, query);
-		listen(configId, createMessageHandler({
-			id: configId,
-			query,
-			destination,
-			isActive: true,
-			name
-		}));
-
-		await ctx.reply("Конфигурация сохранена успешно!");
-		await listWebsockets(ctx);
-	});
+        pendingHandler = {
+            type: 'channel_id',
+            ctx
+        };
+        await ctx.reply("Введите ID канала (без символа @):");
+    });
 }
 
 function createMessageHandler(config: any) {
