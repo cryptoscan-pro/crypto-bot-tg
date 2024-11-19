@@ -311,7 +311,22 @@ function handleActions() {
 		const userId = String(ctx.from.id);
 		telegramQueue.clear();
 		stop(userId);
-		let query: Record<string, string | number> = {};
+
+		// Убедимся, что destination корректно инициализируется
+		const destination = {
+			type: 'private' as const,
+			id: String(ctx.from.id)
+		};
+
+		// Инициализация сессии для новой конфигурации
+		ctx.session = {
+			editingConfig: {
+				configId: generateId(),
+				query: {},
+				destination,
+				name: ''
+			}
+		};
 
 		const dataTypes = await getDataTypes();
 		const typeButtons = dataTypes.map(type => Markup.button.callback(type, `type_${type}`));
@@ -320,16 +335,6 @@ function handleActions() {
 			...typeKeyboard,
 			[Markup.button.callback('« Назад', 'back_to_start')]
 		]));
-
-		// Инициализация сессии для новой конфигурации
-		ctx.session = {
-			editingConfig: {
-				configId: generateId(),
-				query: {},
-				destination: { type: 'private', id: String(ctx.from.id) }, // По умолчанию личные сообщения
-				name: ''
-			}
-		};
 	});
 
 	// Возврат к началу
@@ -387,24 +392,26 @@ function handleActions() {
 }
 
 bot.launch(() => {
-	CLIENTS.forEach((config, userId) => {
-		if (!config.destination || !config.destination.type || !config.destination.id) {
-			console.error(`Invalid config for user ${userId}: missing destination`);
+	CLIENTS.forEach((configs, userId) => {
+		if (!Array.isArray(configs)) {
+			console.error(`Invalid configs for user ${userId}: not an array`);
 			return;
 		}
-		start(userId, config.query);
-		listen(userId, (data) => {
-			telegramQueue.add(async () => {
-				const destination = config.destination.type === 'private' ? userId : config.destination.id;
-				const parseMode = 'Markdown';
-				const message = getMessageByItem(data.data);
-				
-				if (config.destination.type === 'private') {
-					bot.telegram.sendMessage(destination, message, { parse_mode: parseMode });
-				} else {
-					bot.telegram.sendMessage(`@${destination}`, message, { parse_mode: parseMode });
-				}
-			});
+
+		configs.forEach(config => {
+			// Проверяем валидность конфигурации
+			if (!config || !config.destination || !config.destination.type || !config.destination.id) {
+				console.error(`Invalid config for user ${userId}:`, config);
+				return;
+			}
+
+			if (!config.query) {
+				console.error(`Missing query in config for user ${userId}:`, config);
+				return;
+			}
+
+			start(config.id, config.query);
+			listen(config.id, createMessageHandler(config));
 		});
 	});
 });
@@ -456,35 +463,45 @@ async function askContinueOrSave(ctx: any) {
 		if (ctx.session?.editingConfig) {
 			const { configId, query, destination, name } = ctx.session.editingConfig;
 
-			// Запрос имени конфигурации, если оно еще не установлено
+			// Проверяем destination перед сохранением
+			if (!destination || !destination.type || !destination.id) {
+				console.log('Invalid destination:', destination);
+				await ctx.reply("Ошибка: некорректные данные назначения. Пожалуйста, начните заново.");
+				return;
+			}
+
 			if (!name) {
-				await ctx.reply("Введите имя для конфигурации:");
-				
 				pendingHandler = {
 					type: 'config_name',
 					ctx
 				};
 				await ctx.reply("Введите имя для конфигурации:");
+				return;
+			}
+
+			const userId = String(ctx.from.id);
+			const configs = CLIENTS.get(userId) || [];
+			const existingConfigIndex = configs.findIndex(c => c.id === configId);
+
+			const newConfig = {
+				id: configId,
+				query,
+				destination: {
+					type: destination.type,
+					id: destination.id
+				},
+				isActive: true,
+				name
+			};
+
+			if (existingConfigIndex !== -1) {
+				configs[existingConfigIndex] = newConfig;
 			} else {
-				// Если имя уже установлено, сохраняем конфигурацию
-				const userId = String(ctx.from.id);
-				const configs = CLIENTS.get(userId) || [];
-				const existingConfigIndex = configs.findIndex(c => c.id === configId);
+				configs.push(newConfig);
+			}
 
-				if (existingConfigIndex !== -1) {
-					configs[existingConfigIndex].query = query;
-					configs[existingConfigIndex].destination = destination;
-				} else {
-					configs.push({
-						id: configId,
-						query,
-						destination,
-						isActive: true,
-						name
-					});
-				}
-
-				CLIENTS.set(userId, configs);
+			console.log('Saving config:', newConfig);
+			CLIENTS.set(userId, configs);
 
 				// Запуск прослушивания
 				start(configId, query);
