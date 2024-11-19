@@ -377,7 +377,20 @@ async function askContinueOrSave(ctx: any) {
 
 	// Обработчик продолжения
 	bot.action('continue', async (ctx) => {
-		await ctx.reply("Продолжайте настройку.");
+		// Получаем текущий тип данных из сессии
+		const currentType = ctx.session?.editingConfig?.query?.type;
+		
+		if (!currentType) {
+			await ctx.reply("Ошибка: тип данных не найден. Пожалуйста, начните заново.");
+			return;
+		}
+
+		// Получаем колонки для текущего типа данных
+		const columns = await getTypeColumns(currentType);
+		const columnButtons = columns.map(col => Markup.button.callback(col, `column_${col}`));
+		const columnKeyboard = chunk(columnButtons, 3);
+		
+		await ctx.reply("Select a field for filtering or sorting:", Markup.inlineKeyboard(columnKeyboard));
 	});
 
 	// Обработчик сохранения
