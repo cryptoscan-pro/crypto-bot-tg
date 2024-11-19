@@ -181,27 +181,38 @@ function handleActions() {
 				pendingHandler = null;
 				break;
 			}
-			case 'channel_id': {
-				if (pendingHandler.ctx.session?.editingConfig) {
-					// Remove @ if user included it
-					const channelId = text.replace('@', '');
-					
-					pendingHandler.ctx.session.editingConfig.destination = {
-						type: 'channel',
-						id: channelId
-					};
+            case 'channel_id': {
+                if (pendingHandler.ctx.session?.editingConfig) {
+                    // Remove @ if user included it
+                    const channelId = text.replace('@', '');
+                    
+                    // Проверяем доступ бота к каналу
+                    try {
+                        await ctx.telegram.getChatAdministrators(`@${channelId}`);
+                        
+                        pendingHandler.ctx.session.editingConfig.destination = {
+                            type: 'channel',
+                            id: channelId
+                        };
 
-					// Now ask for configuration name
-					pendingHandler = {
-						type: 'config_name',
-						ctx: pendingHandler.ctx
-					};
-					await ctx.reply("Введите имя для конфигурации:");
-				} else {
-					await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
-				}
-				break;
-			}
+                        // Now ask for configuration name
+                        pendingHandler = {
+                            type: 'config_name',
+                            ctx: pendingHandler.ctx
+                        };
+                        await ctx.reply("Введите имя для конфигурации:");
+                    } catch (error) {
+                        console.error('Error checking channel access:', error);
+                        await ctx.reply("Ошибка доступа к каналу. Пожалуйста, убедитесь что:\n" +
+                            "1. Бот добавлен в канал как администратор\n" +
+                            "2. ID канала указан верно\n" +
+                            "Попробуйте еще раз:");
+                    }
+                } else {
+                    await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+                }
+                break;
+            }
 		}
 	});
 
@@ -535,20 +546,37 @@ async function askContinueOrSave(ctx: any) {
 }
 
 function createMessageHandler(config: any) {
-	return (data: any) => {
-		const message = getMessageByItem(data.data);
-		if (config.destination.type === 'private') {
-			telegramQueue.add(async () => {
-				bot.telegram.sendMessage(config.destination.id, message, {
-					parse_mode: 'Markdown'
-				});
-			});
-		} else if (config.destination.type === 'channel') {
-			telegramQueue.add(async () => {
-				bot.telegram.sendMessage(`@${config.destination.id}`, message, {
-					parse_mode: 'Markdown'
-				});
-			});
-		}
-	};
+    return (data: any) => {
+        const message = getMessageByItem(data.data);
+        if (config.destination.type === 'private') {
+            telegramQueue.add(async () => {
+                try {
+                    await bot.telegram.sendMessage(config.destination.id, message, {
+                        parse_mode: 'Markdown'
+                    });
+                    console.log('Successfully sent message to private chat:', config.destination.id);
+                } catch (error) {
+                    console.error('Error sending message to private chat:', error);
+                }
+            });
+        } else if (config.destination.type === 'channel') {
+            telegramQueue.add(async () => {
+                try {
+                    // Добавляем проверку формата ID канала
+                    const channelId = config.destination.id.startsWith('@') 
+                        ? config.destination.id 
+                        : `@${config.destination.id}`;
+                    
+                    await bot.telegram.sendMessage(channelId, message, {
+                        parse_mode: 'Markdown'
+                    });
+                    console.log('Successfully sent message to channel:', channelId);
+                } catch (error) {
+                    console.error('Error sending message to channel:', error);
+                    console.error('Channel ID:', config.destination.id);
+                    console.error('Message:', message);
+                }
+            });
+        }
+    };
 }
