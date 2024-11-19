@@ -164,6 +164,22 @@ function handleActions() {
 	// Изменение %
 	bot.action(/^includes_(.*)$/, async (ctx) => {
 		const column = ctx.match[1];
+		
+		// Инициализируем сессию, если она не существует
+		if (!ctx.session) {
+			ctx.session = {};
+		}
+		
+		// Инициализируем editingConfig, если он не существует
+		if (!ctx.session.editingConfig) {
+			ctx.session.editingConfig = {
+				configId: generateId(),
+				query: {},
+				destination: { type: 'private', id: String(ctx.from.id) },
+				name: ''
+			};
+		}
+
 		const changeActions = [
 			Markup.button.callback("Change in 5 seconds", `change5s_${column}`),
 			Markup.button.callback("Change in 10 seconds", `change10s_${column}`),
@@ -182,13 +198,29 @@ function handleActions() {
 		const column = ctx.match[2];
 		const changeField = `${column}Change${capitalizeFirstLetter(time)}`;
 
-		if (ctx.session?.editingConfig) {
-			ctx.session.editingConfig.query[`includes[${column}]`] = `change${capitalizeFirstLetter(time)}`;
-			await ctx.reply(`Изменение для ${changeField} установлено.`);
-			await askContinueOrSave(ctx);
-		} else {
-			await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+		// Инициализируем сессию, если она не существует
+		if (!ctx.session) {
+			ctx.session = {};
 		}
+		
+		// Инициализируем editingConfig, если он не существует
+		if (!ctx.session.editingConfig) {
+			ctx.session.editingConfig = {
+				configId: generateId(),
+				query: {},
+				destination: { type: 'private', id: String(ctx.from.id) },
+				name: ''
+			};
+		}
+
+		// Убедимся, что query существует
+		if (!ctx.session.editingConfig.query) {
+			ctx.session.editingConfig.query = {};
+		}
+
+		ctx.session.editingConfig.query[`includes[${column}]`] = `change${capitalizeFirstLetter(time)}`;
+		await ctx.reply(`Изменение для ${changeField} установлено.`);
+		await askContinueOrSave(ctx);
 	});
 
 	// Редактирование запроса
