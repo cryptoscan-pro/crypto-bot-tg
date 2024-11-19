@@ -172,8 +172,11 @@ bot.launch(() => {
 	CLIENTS.forEach((query, userId) => {
 		start(userId, query);
 		listen(userId, (data) => {
+			console.log(data)
 			telegramQueue.add(async () => {
-				bot.telegram.sendMessage(userId, getMessageByItem(data));
+				bot.telegram.sendMessage(userId, getMessageByItem(data.data), {
+          parse_mode: 'Markdown'
+				});
 			})
 		})
 	});
