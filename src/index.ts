@@ -109,56 +109,93 @@ function handleActions() {
 		}
 	});
 
-	// Фильтр минимум
-	bot.action(/^filter_min_(.*)$/, async (ctx) => {
-		const column = ctx.match[1];
-		await ctx.reply(`Введите минимальное значение для фильтрации по ${column}:`);
+	// Global text handler
+	bot.on('text', async (ctx) => {
+		if (!pendingHandler) return;
 
-		// Create a unique action for this specific filter
-		const filterHandler = async (msgCtx) => {
-			if (msgCtx.message && 'text' in msgCtx.message) {
-				const minValue = msgCtx.message.text;
-				if (ctx.session?.editingConfig) {
-					ctx.session.editingConfig.query[`min${capitalizeFirstLetter(column)}`] = minValue;
-					await ctx.reply(`Минимальное значение для ${column} установлено: ${minValue}.`);
-					await askContinueOrSave(ctx);
-					
-					// Remove this specific handler
-					bot.context.removeListener('text', filterHandler);
+		const text = ctx.message.text;
+
+		switch (pendingHandler.type) {
+			case 'filter_min': {
+				const column = pendingHandler.column;
+				if (pendingHandler.ctx.session?.editingConfig) {
+					pendingHandler.ctx.session.editingConfig.query[`min${capitalizeFirstLetter(column!)}`] = text;
+					await ctx.reply(`Минимальное значение для ${column} установлено: ${text}.`);
+					await askContinueOrSave(pendingHandler.ctx);
 				} else {
 					await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
 				}
+				pendingHandler = null;
+				break;
 			}
-		};
+			case 'filter_max': {
+				const column = pendingHandler.column;
+				if (pendingHandler.ctx.session?.editingConfig) {
+					pendingHandler.ctx.session.editingConfig.query[`max${capitalizeFirstLetter(column!)}`] = text;
+					await ctx.reply(`Максимальное значение для ${column} установлено: ${text}.`);
+					await askContinueOrSave(pendingHandler.ctx);
+				} else {
+					await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+				}
+				pendingHandler = null;
+				break;
+			}
+			case 'config_name': {
+				if (pendingHandler.ctx.session?.editingConfig) {
+					const { configId, query, destination } = pendingHandler.ctx.session.editingConfig;
+					pendingHandler.ctx.session.editingConfig.name = text;
 
-		// Add the handler
-		bot.on('text', filterHandler);
+					const userId = String(ctx.from.id);
+					const configs = CLIENTS.get(userId) || [];
+					configs.push({
+						id: configId,
+						query,
+						destination,
+						isActive: true,
+						name: text
+					});
+					CLIENTS.set(userId, configs);
+
+					start(configId, query);
+					listen(configId, createMessageHandler({
+						id: configId,
+						query,
+						destination,
+						isActive: true,
+						name: text
+					}));
+
+					await ctx.reply("Конфигурация сохранена успешно!");
+					await listWebsockets(ctx);
+				} else {
+					await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+				}
+				pendingHandler = null;
+				break;
+			}
+		}
+	});
+
+	// Фильтр минимум
+	bot.action(/^filter_min_(.*)$/, async (ctx) => {
+		const column = ctx.match[1];
+		pendingHandler = {
+			type: 'filter_min',
+			column,
+			ctx
+		};
+		await ctx.reply(`Введите минимальное значение для фильтрации по ${column}:`);
 	});
 
 	// Фильтр максимум
 	bot.action(/^filter_max_(.*)$/, async (ctx) => {
 		const column = ctx.match[1];
-		await ctx.reply(`Введите максимальное значение для фильтрации по ${column}:`);
-
-		// Create a unique action for this specific filter
-		const filterHandler = async (msgCtx) => {
-			if (msgCtx.message && 'text' in msgCtx.message) {
-				const maxValue = msgCtx.message.text;
-				if (ctx.session?.editingConfig) {
-					ctx.session.editingConfig.query[`max${capitalizeFirstLetter(column)}`] = maxValue;
-					await ctx.reply(`Максимальное значение для ${column} установлено: ${maxValue}.`);
-					await askContinueOrSave(ctx);
-					
-					// Remove this specific handler
-					bot.context.removeListener('text', filterHandler);
-				} else {
-					await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
-				}
-			}
+		pendingHandler = {
+			type: 'filter_max',
+			column,
+			ctx
 		};
-
-		// Add the handler
-		bot.on('text', filterHandler);
+		await ctx.reply(`Введите максимальное значение для фильтрации по ${column}:`);
 	});
 
 	// Изменение %
@@ -415,43 +452,11 @@ async function askContinueOrSave(ctx: any) {
 			if (!name) {
 				await ctx.reply("Введите имя для конфигурации:");
 				
-				const nameHandler = async (msgCtx) => {
-					if (msgCtx.message && 'text' in msgCtx.message) {
-						const configName = msgCtx.message.text;
-						ctx.session.editingConfig.name = configName;
-
-						// Добавляем конфигурацию
-						const userId = String(ctx.from.id);
-						const configs = CLIENTS.get(userId) || [];
-						configs.push({
-							id: configId,
-							query,
-							destination,
-							isActive: true,
-							name: configName
-						});
-						CLIENTS.set(userId, configs);
-
-						// Запуск прослушивания
-						start(configId, query);
-						listen(configId, createMessageHandler({
-							id: configId,
-							query,
-							destination,
-							isActive: true,
-							name: configName
-						}));
-
-						await ctx.reply("Конфигурация сохранена успешно!");
-						await listWebsockets(ctx);
-
-						// Remove this specific handler
-						bot.context.removeListener('text', nameHandler);
-					}
+				pendingHandler = {
+					type: 'config_name',
+					ctx
 				};
-
-				// Add the handler
-				bot.on('text', nameHandler);
+				await ctx.reply("Введите имя для конфигурации:");
 			} else {
 				// Если имя уже установлено, сохраняем конфигурацию
 				const userId = String(ctx.from.id);
