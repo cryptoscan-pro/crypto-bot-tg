@@ -289,22 +289,7 @@ bot.action(/^toggle_(.+)$/, async (ctx) => {
   }
 });
 
-function createMessageHandler(config: WebSocketConfig) {
-  return (data: any) => {
-    telegramQueue.add(async () => {
-      const message = getMessageByItem(data.data);
-      if (config.destination.type === 'private') {
-        await bot.telegram.sendMessage(config.destination.id, message, {
-          parse_mode: 'Markdown'
-        });
-      } else if (config.destination.type === 'channel') {
-        await bot.telegram.sendMessage(config.destination.id, message, {
-          parse_mode: 'Markdown'
-        });
-      }
-    });
-  };
-}
+import { createMessageHandler } from './utils/createMessageHandler';
 
 bot.launch(() => {
 	CLIENTS.forEach((query, userId) => {

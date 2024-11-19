@@ -26,9 +26,14 @@ export function startWebsocketListening(): Result {
 
 		ws.on('message', (data: any) => {
 			try {
-				eventEmitter.emit(id, JSON.parse(String(data)));
+				const parsedData = JSON.parse(String(data));
+				if (parsedData.quota === 0) {
+					console.error('Quota exceeded. Please try again later or buy subscription in https://cryptoscan.pro');
+					return;
+				}
+				eventEmitter.emit(id, parsedData);
 			} catch (e) {
-				console.error(e);
+				console.error('Error processing websocket message:', e);
 			}
 		});
 	};

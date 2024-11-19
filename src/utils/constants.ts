@@ -1,6 +1,12 @@
 import PQueue from "p-queue";
 import { Telegraf } from "telegraf";
 
+export const ERROR_MESSAGES = {
+  QUOTA_EXCEEDED: 'Quota exceeded. Please try again later or buy subscription in https://cryptoscan.pro',
+  API_ERROR: 'API Error: ',
+  WEBSOCKET_ERROR: 'Error processing websocket message: '
+} as const;
+
 export const WEBSOCKET_COMMANDS = {
   LIST: 'list',
   CREATE: 'create',
