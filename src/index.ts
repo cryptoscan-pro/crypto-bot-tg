@@ -1,4 +1,4 @@
-import "dotenv/config";
+﻿import "dotenv/config";
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
 import { listWebsockets, manageWebsocket } from './commands/websocket';
 import { startWebsocketListening } from "./services/startWebsocketListening";
@@ -11,6 +11,7 @@ import { chunk } from "./utils/chunk";
 import { askContinueOrSave } from "./utils/askContinueOrSave";
 import { getMessageByItem } from "./utils/getMessageByItem";
 import { capitalizeFirstLetter } from "./utils/formatting"; // Предполагается, что есть утилита для этого
+import { generateId } from "./utils/generateId";
 
 export const CLIENTS = new FileMap(CLIENTS_FILE_PATH);
 const historyIds = new LimitedSet(20);
