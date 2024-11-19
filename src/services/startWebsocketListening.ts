@@ -89,11 +89,14 @@ export function startWebsocketListening(): Result {
 		const ws = clients.get(id);
 		if (ws) {
 			console.log(`Found websocket connection for id: ${id}`);
-			ws.removeAllListeners();
-			ws.close(1000, 'Stopped by user');
-			ws.destroy();
-			clients.delete(id);
-			console.log(`Websocket connection closed for id: ${id}`);
+			try {
+				ws.close(1000, 'Stopped by user');
+				ws.destroy(); // Этот метод должен быть доступен в ws-reconnect
+				clients.delete(id);
+				console.log(`Websocket connection closed for id: ${id}`);
+			} catch (error) {
+				console.error('Error while closing websocket:', error);
+			}
 		} else {
 			console.log(`No websocket connection found for id: ${id}`);
 		}
