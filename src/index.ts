@@ -82,15 +82,27 @@ bot.start(async (ctx) => {
 			bot.action(new RegExp(`^filter_min_(.*)$`), async (ctx) => {
 				const column = ctx.match[1];
 				await ctx.reply(`Enter the minimum value for filtering by ${column}:`);
-				bot.on('text', async (msgCtx) => {
+				
+				// Remove any existing message handlers
+				bot.telegram.removeAllListeners('text');
+				
+				// Create a one-time message handler
+				const handler = async (msgCtx) => {
 					if (msgCtx.chat.id === ctx.chat.id) {
 						const minValue = msgCtx.message.text;
 						query[`min${capitalizeFirstLetter(column)}`] = minValue;
 						CLIENTS.set(userId, query);
 						await ctx.reply(`Minimum value for ${column} set: ${minValue}.`);
+						
+						// Remove this handler after use
+						bot.telegram.removeListener('text', handler);
+						
 						await askContinueOrSave(ctx, userId, query as Record<string, string>, start, listen);
 					}
-				});
+				};
+				
+				// Add the one-time handler
+				bot.on('text', handler);
 			});
 
 			bot.action(new RegExp(`^filter_max_(.*)$`), async (ctx) => {
