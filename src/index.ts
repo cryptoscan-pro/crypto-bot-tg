@@ -183,19 +183,25 @@ function handleActions() {
 			}
             case 'channel_id': {
                 if (pendingHandler.ctx.session?.editingConfig) {
-                    // Remove @ if user included it
-                    const channelId = text.replace('@', '');
+                    let channelId = text.trim();
                     
-                    // Проверяем доступ бота к каналу
                     try {
-                        await ctx.telegram.getChatAdministrators(`@${channelId}`);
+                        // Если ID начинается с -100, это числовой формат
+                        if (channelId.startsWith('-100')) {
+                            await ctx.telegram.getChat(channelId);
+                        } else {
+                            // Для текстового формата добавляем @ если нужно
+                            if (!channelId.startsWith('@')) {
+                                channelId = `@${channelId}`;
+                            }
+                            await ctx.telegram.getChat(channelId);
+                        }
                         
                         pendingHandler.ctx.session.editingConfig.destination = {
                             type: 'channel',
                             id: channelId
                         };
 
-                        // Now ask for configuration name
                         pendingHandler = {
                             type: 'config_name',
                             ctx: pendingHandler.ctx
@@ -203,10 +209,12 @@ function handleActions() {
                         await ctx.reply("Введите имя для конфигурации:");
                     } catch (error) {
                         console.error('Error checking channel access:', error);
-                        await ctx.reply("Ошибка доступа к каналу. Пожалуйста, убедитесь что:\n" +
+                        await ctx.reply(
+                            "Ошибка доступа к каналу. Пожалуйста, убедитесь что:\n" +
                             "1. Бот добавлен в канал как администратор\n" +
                             "2. ID канала указан верно\n" +
-                            "Попробуйте еще раз:");
+                            "Попробуйте еще раз:"
+                        );
                     }
                 } else {
                     await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
@@ -562,10 +570,17 @@ function createMessageHandler(config: any) {
         } else if (config.destination.type === 'channel') {
             telegramQueue.add(async () => {
                 try {
-                    // Добавляем проверку формата ID канала
-                    const channelId = config.destination.id.startsWith('@') 
-                        ? config.destination.id 
-                        : `@${config.destination.id}`;
+                    // Правильно форматируем ID канала
+                    let channelId = config.destination.id;
+                    
+                    // Если ID числовой - используем как есть
+                    if (channelId.startsWith('-100')) {
+                        channelId = config.destination.id;
+                    }
+                    // Если текстовый и без @ - добавляем @
+                    else if (!channelId.startsWith('@')) {
+                        channelId = `@${channelId}`;
+                    }
                     
                     await bot.telegram.sendMessage(channelId, message, {
                         parse_mode: 'Markdown'
@@ -575,6 +590,10 @@ function createMessageHandler(config: any) {
                     console.error('Error sending message to channel:', error);
                     console.error('Channel ID:', config.destination.id);
                     console.error('Message:', message);
+                    // Добавим более подробную информацию об ошибке
+                    if (error.response) {
+                        console.error('Error response:', error.response);
+                    }
                 }
             });
         }
