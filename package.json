@@ -16,6 +16,7 @@
     "p-memoize": "^7.1.1",
     "p-queue": "^8.0.1",
     "telegraf": "^4.16.3",
+    "telegraf-session-local": "^2.1.1",
     "tsx": "^4.17.0",
     "typescript": "^5.6.3"
   }

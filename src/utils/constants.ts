@@ -1,6 +1,14 @@
 import PQueue from "p-queue";
 import { Telegraf } from "telegraf";
 
+export const WEBSOCKET_COMMANDS = {
+  LIST: 'list',
+  CREATE: 'create',
+  DELETE: 'delete',
+  EDIT: 'edit',
+  TOGGLE: 'toggle'
+} as const;
+
 export const CLIENTS_FILE_PATH = './clients.json';
 export const SENT_IDS_LIMIT = 20;
 export const QUEUE_CONCURRENCY = 10;
