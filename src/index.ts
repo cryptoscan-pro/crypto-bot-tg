@@ -1,5 +1,9 @@
 ﻿import "dotenv/config";
+import { session } from 'telegraf';
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
+
+// Initialize session middleware
+bot.use(session());
 import { listWebsockets, manageWebsocket } from './commands/websocket';
 import { startWebsocketListening } from "./services/startWebsocketListening";
 import { startHttpListening } from "./services/startHttpListening";
