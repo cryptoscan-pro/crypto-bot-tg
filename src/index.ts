@@ -377,7 +377,6 @@ async function askContinueOrSave(ctx: any) {
 
 	// Обработчик продолжения
 	bot.action('continue', async (ctx) => {
-		// Получаем текущий тип данных из сессии
 		const currentType = ctx.session?.editingConfig?.query?.type;
 		
 		if (!currentType) {
@@ -385,9 +384,27 @@ async function askContinueOrSave(ctx: any) {
 			return;
 		}
 
-		// Получаем колонки для текущего типа данных
-		const columns = await getTypeColumns(currentType);
-		const columnButtons = columns.map(col => Markup.button.callback(col, `column_${col}`));
+		// Получаем стандартные колонки для текущего типа данных
+		const standardColumns = await getTypeColumns(currentType);
+		
+		// Ищем поля с изменением процента в текущем query
+		const percentageFields = Object.entries(ctx.session?.editingConfig?.query || {})
+			.filter(([key]) => key.startsWith('includes['))
+			.map(([key, value]) => {
+				const column = key.match(/includes\[(.*?)\]/)?.[1];
+				if (column && typeof value === 'string') {
+					// Преобразуем 'change10s' в 'priceChange10s'
+					return `${column}${value.charAt(0).toUpperCase()}${value.slice(1)}`;
+				}
+				return null;
+			})
+			.filter(Boolean);
+
+		// Объединяем стандартные колонки с полями изменения процента
+		const allColumns = [...standardColumns, ...percentageFields];
+		
+		// Создаем кнопки для всех полей
+		const columnButtons = allColumns.map(col => Markup.button.callback(col, `column_${col}`));
 		const columnKeyboard = chunk(columnButtons, 3);
 		
 		await ctx.reply("Select a field for filtering or sorting:", Markup.inlineKeyboard(columnKeyboard));
