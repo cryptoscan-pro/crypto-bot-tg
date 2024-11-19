@@ -114,27 +114,25 @@ function handleActions() {
 		const column = ctx.match[1];
 		await ctx.reply(`Введите минимальное значение для фильтрации по ${column}:`);
 
-		// Удаляем все существующие обработчики текста
-		bot.off('text');
-
-		// Создаем одноразовый обработчик текста
-		const handler = async (msgCtx) => {
-			if (msgCtx.chat.id === ctx.chat.id) {
+		// Create a unique action for this specific filter
+		const filterHandler = async (msgCtx) => {
+			if (msgCtx.message && 'text' in msgCtx.message) {
 				const minValue = msgCtx.message.text;
 				if (ctx.session?.editingConfig) {
 					ctx.session.editingConfig.query[`min${capitalizeFirstLetter(column)}`] = minValue;
 					await ctx.reply(`Минимальное значение для ${column} установлено: ${minValue}.`);
 					await askContinueOrSave(ctx);
+					
+					// Remove this specific handler
+					bot.context.removeListener('text', filterHandler);
 				} else {
 					await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
 				}
-				// Удаляем обработчик после использования
-				bot.off('text', handler);
 			}
 		};
 
-		// Добавляем обработчик
-		bot.on('text', handler);
+		// Add the handler
+		bot.on('text', filterHandler);
 	});
 
 	// Фильтр максимум
@@ -142,27 +140,25 @@ function handleActions() {
 		const column = ctx.match[1];
 		await ctx.reply(`Введите максимальное значение для фильтрации по ${column}:`);
 
-		// Удаляем все существующие обработчики текста
-		bot.off('text');
-
-		// Создаем одноразовый обработчик текста
-		const handler = async (msgCtx) => {
-			if (msgCtx.chat.id === ctx.chat.id) {
+		// Create a unique action for this specific filter
+		const filterHandler = async (msgCtx) => {
+			if (msgCtx.message && 'text' in msgCtx.message) {
 				const maxValue = msgCtx.message.text;
 				if (ctx.session?.editingConfig) {
 					ctx.session.editingConfig.query[`max${capitalizeFirstLetter(column)}`] = maxValue;
 					await ctx.reply(`Максимальное значение для ${column} установлено: ${maxValue}.`);
 					await askContinueOrSave(ctx);
+					
+					// Remove this specific handler
+					bot.context.removeListener('text', filterHandler);
 				} else {
 					await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
 				}
-				// Удаляем обработчик после использования
-				bot.off('text', handler);
 			}
 		};
 
-		// Добавляем обработчик
-		bot.on('text', handler);
+		// Add the handler
+		bot.on('text', filterHandler);
 	});
 
 	// Изменение %
@@ -419,12 +415,8 @@ async function askContinueOrSave(ctx: any) {
 			if (!name) {
 				await ctx.reply("Введите имя для конфигурации:");
 				
-				// Удаляем все существующие обработчики текста
-				bot.off('text');
-
-				// Создаем одноразовый обработчик текста для имени
 				const nameHandler = async (msgCtx) => {
-					if (msgCtx.chat.id === ctx.chat.id) {
+					if (msgCtx.message && 'text' in msgCtx.message) {
 						const configName = msgCtx.message.text;
 						ctx.session.editingConfig.name = configName;
 
@@ -452,13 +444,13 @@ async function askContinueOrSave(ctx: any) {
 
 						await ctx.reply("Конфигурация сохранена успешно!");
 						await listWebsockets(ctx);
-						
-						// Удаляем обработчик после использования
-						bot.off('text', nameHandler);
+
+						// Remove this specific handler
+						bot.context.removeListener('text', nameHandler);
 					}
 				};
 
-				// Добавляем обработчик
+				// Add the handler
 				bot.on('text', nameHandler);
 			} else {
 				// Если имя уже установлено, сохраняем конфигурацию
