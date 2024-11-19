@@ -460,65 +460,65 @@ async function askContinueOrSave(ctx: any) {
 
 	// Обработчик сохранения
 	bot.action('save', async (ctx) => {
-		if (ctx.session?.editingConfig) {
-			const { configId, query, destination, name } = ctx.session.editingConfig;
-
-			// Проверяем destination перед сохранением
-			if (!destination || !destination.type || !destination.id) {
-				console.log('Invalid destination:', destination);
-				await ctx.reply("Ошибка: некорректные данные назначения. Пожалуйста, начните заново.");
-				return;
-			}
-
-			if (!name) {
-				pendingHandler = {
-					type: 'config_name',
-					ctx
-				};
-				await ctx.reply("Введите имя для конфигурации:");
-				return;
-			}
-
-			const userId = String(ctx.from.id);
-			const configs = CLIENTS.get(userId) || [];
-			const existingConfigIndex = configs.findIndex(c => c.id === configId);
-
-			const newConfig = {
-				id: configId,
-				query,
-				destination: {
-					type: destination.type,
-					id: destination.id
-				},
-				isActive: true,
-				name
-			};
-
-			if (existingConfigIndex !== -1) {
-				configs[existingConfigIndex] = newConfig;
-			} else {
-				configs.push(newConfig);
-			}
-
-			console.log('Saving config:', newConfig);
-			CLIENTS.set(userId, configs);
-
-				// Запуск прослушивания
-				start(configId, query);
-				listen(configId, createMessageHandler({
-					id: configId,
-					query,
-					destination,
-					isActive: true,
-					name
-				}));
-
-				await ctx.reply("Конфигурация сохранена успешно!");
-				await listWebsockets(ctx);
-			}
-		} else {
+		if (!ctx.session?.editingConfig) {
 			await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+			return;
 		}
+
+		const { configId, query, destination, name } = ctx.session.editingConfig;
+
+		// Проверяем destination перед сохранением
+		if (!destination || !destination.type || !destination.id) {
+			console.log('Invalid destination:', destination);
+			await ctx.reply("Ошибка: некорректные данные назначения. Пожалуйста, начните заново.");
+			return;
+		}
+
+		if (!name) {
+			pendingHandler = {
+				type: 'config_name',
+				ctx
+			};
+			await ctx.reply("Введите имя для конфигурации:");
+			return;
+		}
+
+		const userId = String(ctx.from.id);
+		const configs = CLIENTS.get(userId) || [];
+		const existingConfigIndex = configs.findIndex(c => c.id === configId);
+
+		const newConfig = {
+			id: configId,
+			query,
+			destination: {
+				type: destination.type,
+				id: destination.id
+			},
+			isActive: true,
+			name
+		};
+
+		if (existingConfigIndex !== -1) {
+			configs[existingConfigIndex] = newConfig;
+		} else {
+			configs.push(newConfig);
+		}
+
+		console.log('Saving config:', newConfig);
+		CLIENTS.set(userId, configs);
+
+		// Запуск прослушивания
+		start(configId, query);
+		listen(configId, createMessageHandler({
+			id: configId,
+			query,
+			destination,
+			isActive: true,
+			name
+		}));
+
+		await ctx.reply("Конфигурация сохранена успешно!");
+		await listWebsockets(ctx);
 	});
 }
 
