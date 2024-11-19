@@ -84,7 +84,7 @@ bot.start(async (ctx) => {
 				await ctx.reply(`Enter the minimum value for filtering by ${column}:`);
 				
 				// Remove any existing message handlers
-				bot.telegram.removeAllListeners('text');
+				bot.off('text');
 				
 				// Create a one-time message handler
 				const handler = async (msgCtx) => {

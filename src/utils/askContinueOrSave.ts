@@ -13,7 +13,7 @@ export async function askContinueOrSave(
   query: Record<string, string>
 ) {
   // Remove any existing handlers first
-  bot.removeAllListeners('text');
+  bot.off('text');
   await ctx.reply(
     'Что делаем дальше?',
     Markup.inlineKeyboard([
