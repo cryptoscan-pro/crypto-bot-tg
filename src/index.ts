@@ -556,44 +556,36 @@ async function askContinueOrSave(ctx: any) {
 function createMessageHandler(config: any) {
     return (data: any) => {
         const message = getMessageByItem(data.data);
+        console.log(`[WebSocket] Получено сообщение для конфигурации "${config.name}"`);
+
         if (config.destination.type === 'private') {
             telegramQueue.add(async () => {
                 try {
                     await bot.telegram.sendMessage(config.destination.id, message, {
                         parse_mode: 'Markdown'
                     });
-                    console.log('Successfully sent message to private chat:', config.destination.id);
+                    console.log(`[Telegram] Сообщение успешно отправлено в приватный чат: ${config.destination.id}`);
                 } catch (error) {
-                    console.error('Error sending message to private chat:', error);
+                    console.error(`[Telegram] Ошибка отправки в приватный чат:`, error);
                 }
             });
         } else if (config.destination.type === 'channel') {
             telegramQueue.add(async () => {
                 try {
-                    // Правильно форматируем ID канала
                     let channelId = config.destination.id;
-                    
-                    // Если ID числовой - используем как есть
                     if (channelId.startsWith('-100')) {
                         channelId = config.destination.id;
-                    }
-                    // Если текстовый и без @ - добавляем @
-                    else if (!channelId.startsWith('@')) {
+                    } else if (!channelId.startsWith('@')) {
                         channelId = `@${channelId}`;
                     }
                     
                     await bot.telegram.sendMessage(channelId, message, {
                         parse_mode: 'Markdown'
                     });
-                    console.log('Successfully sent message to channel:', channelId);
+                    console.log(`[Telegram] Сообщение успешно отправлено в канал: ${channelId}`);
                 } catch (error) {
-                    console.error('Error sending message to channel:', error);
-                    console.error('Channel ID:', config.destination.id);
-                    console.error('Message:', message);
-                    // Добавим более подробную информацию об ошибке
-                    if (error.response) {
-                        console.error('Error response:', error.response);
-                    }
+                    console.error(`[Telegram] Ошибка отправки в канал ${config.destination.id}:`, error);
+                    console.error('Сообщение:', message);
                 }
             });
         }
