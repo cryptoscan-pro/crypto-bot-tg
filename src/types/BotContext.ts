@@ -1,12 +1,18 @@
 import { Context } from 'telegraf';
 
 export interface BotContext extends Context {
-  session: {
-    awaitingConfigName: null | {
+  session?: {
+    editingConfig?: {
+      configId: string;
+      query: Record<string, string>;
+      destination: { type: 'private' | 'channel', id: string };
+      name: string;
+    };
+    awaitingConfigName?: {
       query: Record<string, string>;
       destination: { type: 'private' | 'channel', id: string };
     };
-    awaitingChannelId: null | {
+    awaitingChannelId?: {
       query: Record<string, string>;
     };
   };

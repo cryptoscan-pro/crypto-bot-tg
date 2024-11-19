@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
-import { hello } from "./utils/hello";
+import { listWebsockets, manageWebsocket } from './commands/websocket';
 import { startWebsocketListening } from "./services/startWebsocketListening";
 import { startHttpListening } from "./services/startHttpListening";
 import { LimitedSet } from "./utils/LimitedSet";
@@ -32,15 +32,13 @@ if (process.env.WEBSOCKET !== '1') {
 }
 
 bot.start(async (ctx) => {
-	const userId = String(ctx.from.id);
-	telegramQueue.clear()
-	stop(userId);
-	let query: Record<string, string | number> = {};
-
-	const dataTypes = await getDataTypes();
-	const typeButtons = dataTypes.map(type => Markup.button.callback(type, `type_${type}`));
-	const typeKeyboard = typeButtons.length > 3 ? chunk(typeButtons, 3) : [typeButtons];
-	await ctx.reply("Select data type:", Markup.inlineKeyboard(typeKeyboard));
+  await ctx.reply(
+    'Выберите действие:',
+    Markup.inlineKeyboard([
+      [Markup.button.callback('📋 Список отслеживаний', 'list_websockets')],
+      [Markup.button.callback('➕ Добавить новое отслеживание', 'create_websocket')]
+    ])
+  );
 
 	bot.action(new RegExp(`^type_(.*)$`), async (ctx) => {
 		const selectedType = ctx.match[1];
@@ -222,6 +220,91 @@ bot.action(/^edit_query_(.+)$/, async (ctx) => {
     }
   };
 });
+
+bot.action('list_websockets', async (ctx) => {
+  await listWebsockets(ctx);
+});
+
+bot.action('create_websocket', async (ctx) => {
+  const userId = String(ctx.from.id);
+  telegramQueue.clear();
+  stop(userId);
+  let query: Record<string, string | number> = {};
+
+  const dataTypes = await getDataTypes();
+  const typeButtons = dataTypes.map(type => Markup.button.callback(type, `type_${type}`));
+  const typeKeyboard = typeButtons.length > 3 ? chunk(typeButtons, 3) : [typeButtons];
+  await ctx.reply("Выберите тип данных:", Markup.inlineKeyboard([
+    ...typeKeyboard,
+    [Markup.button.callback('« Назад', 'back_to_start')]
+  ]));
+});
+
+bot.action('back_to_start', async (ctx) => {
+  await ctx.reply(
+    'Выберите действие:',
+    Markup.inlineKeyboard([
+      [Markup.button.callback('📋 Список отслеживаний', 'list_websockets')],
+      [Markup.button.callback('➕ Добавить новое отслеживание', 'create_websocket')]
+    ])
+  );
+});
+
+bot.action(/^manage_(.+)$/, async (ctx) => {
+  const configId = ctx.match[1];
+  await manageWebsocket(ctx, configId);
+});
+
+bot.action(/^delete_(.+)$/, async (ctx) => {
+  const configId = ctx.match[1];
+  const userId = String(ctx.from.id);
+  const configs = CLIENTS.get(userId) || [];
+  const newConfigs = configs.filter(c => c.id !== configId);
+  
+  stop(configId);
+  CLIENTS.set(userId, newConfigs);
+  
+  await ctx.reply('Конфигурация успешно удалена');
+  await listWebsockets(ctx);
+});
+
+bot.action(/^toggle_(.+)$/, async (ctx) => {
+  const configId = ctx.match[1];
+  const userId = String(ctx.from.id);
+  const configs = CLIENTS.get(userId) || [];
+  const configIndex = configs.findIndex(c => c.id === configId);
+  
+  if (configIndex !== -1) {
+    configs[configIndex].isActive = !configs[configIndex].isActive;
+    
+    if (configs[configIndex].isActive) {
+      start(configId, configs[configIndex].query);
+      listen(configId, createMessageHandler(configs[configIndex]));
+    } else {
+      stop(configId);
+    }
+    
+    CLIENTS.set(userId, configs);
+    await manageWebsocket(ctx, configId);
+  }
+});
+
+function createMessageHandler(config: WebSocketConfig) {
+  return (data: any) => {
+    telegramQueue.add(async () => {
+      const message = getMessageByItem(data.data);
+      if (config.destination.type === 'private') {
+        await bot.telegram.sendMessage(config.destination.id, message, {
+          parse_mode: 'Markdown'
+        });
+      } else if (config.destination.type === 'channel') {
+        await bot.telegram.sendMessage(config.destination.id, message, {
+          parse_mode: 'Markdown'
+        });
+      }
+    });
+  };
+}
 
 bot.launch(() => {
 	CLIENTS.forEach((query, userId) => {
