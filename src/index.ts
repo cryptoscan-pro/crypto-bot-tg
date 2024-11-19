@@ -42,6 +42,8 @@ bot.start(async (ctx) => {
 
 	bot.action(new RegExp(`^type_(.*)$`), async (ctx) => {
 		const selectedType = ctx.match[1];
+		const userId = String(ctx.from.id);
+		let query = ctx.session?.editingConfig?.query || {};
 		query['type'] = selectedType;
 		const columns = await getTypeColumns(selectedType);
 		const columnButtons = columns.map(col => Markup.button.callback(col, `column_${col}`));
