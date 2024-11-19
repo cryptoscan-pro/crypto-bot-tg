@@ -1,26 +1,32 @@
 import pMemoize from "p-memoize";
 import { API_URL } from "./constants";
 
-export async function getData(query: Record<string, string>) {
-	return fetch(API_URL + "?" + new URLSearchParams(query))
-		.then(async (res) => {
-			if (!res.ok) {
-				throw new Error(await res.text());
-			}
+interface ApiResponse<T> {
+  data: T;
+  quota: number;
+  slice?: Record<string, unknown>;
+}
 
-			return res;
-		})
-		.then((res) => res.json())
-		.then((res) => {
-			if (res.quota === 0) {
-				throw new Error('Quota exceeded. Please try again later or buy subscription in https://cryptoscan.pro');
-			}
-			return res.data
-		})
-		.catch((e) => {
-			console.error(e)
-			return [];
-		})
+export async function getData<T = any>(query: Record<string, string>): Promise<T[]> {
+  try {
+    const response = await fetch(`${API_URL}?${new URLSearchParams(query)}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API Error: ${errorText}`);
+    }
+
+    const result: ApiResponse<T> = await response.json();
+    
+    if (result.quota === 0) {
+      throw new Error('Quota exceeded. Please try again later or buy subscription in https://cryptoscan.pro');
+    }
+
+    return result.data;
+  } catch (error) {
+    console.error('getData error:', error);
+    return [];
+  }
 }
 
 export const getDataTypes = pMemoize(async (): Promise<string[]> => {

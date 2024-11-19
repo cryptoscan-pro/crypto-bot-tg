@@ -9,6 +9,8 @@ export const WEBSOCKET_COMMANDS = {
   TOGGLE: 'toggle'
 } as const;
 
+export type WebSocketCommand = typeof WEBSOCKET_COMMANDS[keyof typeof WEBSOCKET_COMMANDS];
+
 export const CLIENTS_FILE_PATH = './clients.json';
 export const SENT_IDS_LIMIT = 20;
 export const QUEUE_CONCURRENCY = 10;
