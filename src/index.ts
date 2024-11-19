@@ -431,8 +431,11 @@ bot.launch(() => {
 				return;
 			}
 
-			start(config.id, config.query);
-			listen(config.id, createMessageHandler(config));
+			// Only start active configurations
+			if (config.isActive) {
+				start(config.id, config.query);
+				listen(config.id, createMessageHandler(config));
+			}
 		});
 	});
 });
