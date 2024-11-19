@@ -3,7 +3,7 @@ import { session } from 'telegraf';
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
 
 type PendingHandler = {
-    type: 'filter_min' | 'filter_max' | 'config_name';
+    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id';
     column?: string;
     ctx: any;
 };
@@ -179,6 +179,27 @@ function handleActions() {
 					await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
 				}
 				pendingHandler = null;
+				break;
+			}
+			case 'channel_id': {
+				if (pendingHandler.ctx.session?.editingConfig) {
+					// Remove @ if user included it
+					const channelId = text.replace('@', '');
+					
+					pendingHandler.ctx.session.editingConfig.destination = {
+						type: 'channel',
+						id: channelId
+					};
+
+					// Now ask for configuration name
+					pendingHandler = {
+						type: 'config_name',
+						ctx: pendingHandler.ctx
+					};
+					await ctx.reply("Введите имя для конфигурации:");
+				} else {
+					await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+				}
 				break;
 			}
 		}
@@ -465,27 +486,54 @@ async function askContinueOrSave(ctx: any) {
 			return;
 		}
 
-		const { configId, query, destination, name } = ctx.session.editingConfig;
+		// Show destination choice buttons
+		await ctx.reply(
+			"Выберите куда отправлять уведомления:",
+			Markup.inlineKeyboard([
+				[Markup.button.callback('📱 Личные сообщения', 'dest_private')],
+				[Markup.button.callback('📢 Канал', 'dest_channel')]
+			])
+		);
 
-		// Проверяем destination перед сохранением
-		if (!destination || !destination.type || !destination.id) {
-			console.log('Invalid destination:', destination);
-			await ctx.reply("Ошибка: некорректные данные назначения. Пожалуйста, начните заново.");
+	});
+
+	// Handler for private messages choice
+	bot.action('dest_private', async (ctx) => {
+		if (!ctx.session?.editingConfig) {
+			await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
 			return;
 		}
 
-		if (!name) {
-			pendingHandler = {
-				type: 'config_name',
-				ctx
-			};
-			await ctx.reply("Введите имя для конфигурации:");
+		ctx.session.editingConfig.destination = {
+			type: 'private',
+			id: String(ctx.from.id)
+		};
+
+		// Ask for configuration name
+		pendingHandler = {
+			type: 'config_name',
+			ctx
+		};
+		await ctx.reply("Введите имя для конфигурации:");
+	});
+
+	// Handler for channel choice
+	bot.action('dest_channel', async (ctx) => {
+		if (!ctx.session?.editingConfig) {
+			await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
 			return;
 		}
 
-		const userId = String(ctx.from.id);
-		const configs = CLIENTS.get(userId) || [];
-		const existingConfigIndex = configs.findIndex(c => c.id === configId);
+		pendingHandler = {
+			type: 'channel_id',
+			ctx
+		};
+		await ctx.reply("Введите ID канала (без символа @):");
+	});
+
+	const userId = String(ctx.from.id);
+	const configs = CLIENTS.get(userId) || [];
+	const existingConfigIndex = configs.findIndex(c => c.id === configId);
 
 		const newConfig = {
 			id: configId,
