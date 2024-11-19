@@ -218,6 +218,24 @@ function handleActions() {
                 }
                 break;
             }
+            case 'ai_prompt': {
+                if (pendingHandler.ctx.session?.editingConfig) {
+                    pendingHandler.ctx.session.editingConfig.aiPrompt = text;
+                    
+                    // Continue with destination selection
+                    await ctx.reply(
+                        "Выберите куда отправлять уведомления:",
+                        Markup.inlineKeyboard([
+                            [Markup.button.callback('📱 Личные сообщения', 'dest_private')],
+                            [Markup.button.callback('📢 Канал', 'dest_channel')]
+                        ])
+                    );
+                } else {
+                    await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
+                }
+                pendingHandler = null;
+                break;
+            }
 		}
 	});
 
