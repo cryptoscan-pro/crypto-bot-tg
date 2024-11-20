@@ -44,7 +44,8 @@ export async function formatWithGPT(content: string, prompt: string): Promise<st
             .replace(/```(?:json)?/g, '')  // Remove code blocks more robustly
             .replace(/\n/g, ' ')           // Replace newlines with spaces
             .replace(/\\/g, '')            // Remove backslashes
-            .replace(/\s+/g, ' ');         // Normalize whitespace
+            .replace(/\s+/g, ' ')         // Normalize whitespace
+            .replace(/"(.*?)"/g, (match) => match.replace(/"/g, ''));
     } catch (error) {
         console.error('[OpenAI Service Error]:', error);
         // Return original content if AI processing fails

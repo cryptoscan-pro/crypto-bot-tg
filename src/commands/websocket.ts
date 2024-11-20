@@ -1,7 +1,5 @@
 import { Context, Markup } from 'telegraf';
-import { WebSocketConfig } from '../types/WebSocketConfig';
 import { CLIENTS } from '..';
-import { generateId } from '../utils/generateId';
 
 export async function listWebsockets(ctx: Context) {
   const userId = String(ctx.from!.id);

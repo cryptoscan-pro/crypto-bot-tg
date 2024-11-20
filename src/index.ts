@@ -24,6 +24,7 @@ import { askContinueOrSave } from "./utils/askContinueOrSave";
 import { getMessageByItem } from "./utils/getMessageByItem";
 import { capitalizeFirstLetter } from "./utils/formatting"; // Предполагается, что есть утилита для этого
 import { generateId } from "./utils/generateId";
+import { formatWithGPT } from "./services/openaiService";
 
 export const CLIENTS = new FileMap(CLIENTS_FILE_PATH);
 const historyIds = new LimitedSet(20);
@@ -617,7 +618,7 @@ function createMessageHandler(config: any) {
             telegramQueue.add(async () => {
                 try {
                     await bot.telegram.sendMessage(config.destination.id, message, {
-                        parse_mode: 'Markdown'
+                        parse_mode: 'Markdown',
                     });
                     console.log(`[Telegram] Сообщение успешно отправлено в приватный чат: ${config.destination.id}`);
                 } catch (error) {
@@ -635,7 +636,8 @@ function createMessageHandler(config: any) {
                     }
                     
                     await bot.telegram.sendMessage(channelId, message, {
-                        parse_mode: 'Markdown'
+                        parse_mode: 'Markdown',
+												message_thread_id: config.destination.topicId,
                     });
                     console.log(`[Telegram] Сообщение успешно отправлено в канал: ${channelId}`);
                 } catch (error) {
