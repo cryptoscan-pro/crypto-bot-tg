@@ -8,14 +8,14 @@ async function getStringSession() {
   });
 
   await client.start({
-    phoneNumber: async () => await prompt('Please enter your phone number: '),
-    password: async () => await prompt('Please enter your password: '),
-    phoneCode: async () => await prompt('Please enter the code you received: '),
+    phoneNumber: async () => await prompt('Пожалуйста, введите ваш номер телефона: '),
+    password: async () => await prompt('Пожалуйста, введите ваш пароль: '),
+    phoneCode: async () => await prompt('Пожалуйста, введите код, который вы получили: '),
     onError: (err) => console.log(err),
   });
 
   const session = client.session.save();
-  console.log('String session:', session);
+  console.log('Строковая сессия:', session);
   await client.disconnect();
 }
 
