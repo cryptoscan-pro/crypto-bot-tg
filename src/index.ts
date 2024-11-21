@@ -344,7 +344,7 @@ function handleActions() {
 		const dataTypes = await getDataTypes();
 		const typeButtons = dataTypes.map(type => Markup.button.callback(type, `type_${type}`));
 		const typeKeyboard = chunk(typeButtons, 3);
-		await ctx.reply("Select data type to modify:", Markup.inlineKeyboard(typeKeyboard));
+		await ctx.reply("Выберите тип данных:", Markup.inlineKeyboard(typeKeyboard));
 
 		// Сохранение текущих деталей конфигурации в сессии
 		ctx.session = {
