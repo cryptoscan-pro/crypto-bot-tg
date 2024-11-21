@@ -604,13 +604,11 @@ function createMessageHandler(config: any) {
         let message = getMessageByItem(data.data);
         console.log(`[WebSocket] Получено сообщение для конфигурации "${config.name}"`);
 
-        // Process with AI if prompt is configured
         if (config.aiPrompt) {
             try {
                 message = await formatWithGPT(message, config.aiPrompt);
             } catch (error) {
                 console.error('[AI] Error processing message:', error);
-                // Continue with original message if AI processing fails
             }
         }
 
