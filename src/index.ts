@@ -84,11 +84,11 @@ function handleActions() {
 	bot.action(/^column_(.*)$/, async (ctx) => {
 		const selectedColumn = ctx.match[1];
 		const actions = [
-			Markup.button.callback("Sort Descending", `sort_desc_${selectedColumn}`),
-			Markup.button.callback("Sort Ascending", `sort_asc_${selectedColumn}`),
-			Markup.button.callback("Filter Min", `filter_min_${selectedColumn}`),
-			Markup.button.callback("Filter Max", `filter_max_${selectedColumn}`),
-			Markup.button.callback("Change %", `includes_${selectedColumn}`)
+			Markup.button.callback("Сортировка по убыванию", `sort_desc_${selectedColumn}`),
+			Markup.button.callback("Сортировка по возрастанию", `sort_asc_${selectedColumn}`),
+			Markup.button.callback("Минимальный фильтр", `filter_min_${selectedColumn}`),
+			Markup.button.callback("Максимальный фильтр", `filter_max_${selectedColumn}`),
+			Markup.button.callback("Изменение %", `includes_${selectedColumn}`)
 		];
 		const actionsKeyboard = chunk(actions, 2);
 		await ctx.reply("Select an action:", Markup.inlineKeyboard(actionsKeyboard));
@@ -99,7 +99,7 @@ function handleActions() {
 		const column = ctx.match[1];
 		if (ctx.session?.editingConfig) {
 			ctx.session.editingConfig.query[`sort[${column}]`] = "desc";
-			await ctx.reply(`Sorting by ${column} in descending order set.`);
+			await ctx.reply(`Установлена сортировка по ${column} по убыванию.`);
 			await askContinueOrSave(ctx);
 		} else {
 			await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
@@ -110,7 +110,7 @@ function handleActions() {
 		const column = ctx.match[1];
 		if (ctx.session?.editingConfig) {
 			ctx.session.editingConfig.query[`sort[${column}]`] = "asc";
-			await ctx.reply(`Sorting by ${column} in ascending order set.`);
+			await ctx.reply(`Установлена сортировка по ${column} по возрастанию.`);
 			await askContinueOrSave(ctx);
 		} else {
 			await ctx.reply("Сессия не найдена. Пожалуйста, начните заново.");
@@ -290,7 +290,7 @@ function handleActions() {
 			Markup.button.callback("Change in 1 hour", `change1h_${column}`)
 		];
 		const changeActionsKeyboard = chunk(changeActions, 2);
-		await ctx.reply("Select the period of change in percentage:", Markup.inlineKeyboard(changeActionsKeyboard));
+		await ctx.reply("Выберите период изменения в процентах:", Markup.inlineKeyboard(changeActionsKeyboard));
 	});
 
 	// Изменение периода %
@@ -514,7 +514,7 @@ async function askContinueOrSave(ctx: any) {
         const columnButtons = allColumns.map(col => Markup.button.callback(col, `column_${col}`));
         const columnKeyboard = chunk(columnButtons, 3);
         
-        await ctx.reply("Select a field for filtering or sorting:", Markup.inlineKeyboard(columnKeyboard));
+        await ctx.reply("Выберите поле для фильтрации или сортировки:", Markup.inlineKeyboard(columnKeyboard));
     });
 
     // Обработчик сохранения
