@@ -282,12 +282,12 @@ function handleActions() {
 		}
 
 		const changeActions = [
-			Markup.button.callback("Change in 5 seconds", `change5s_${column}`),
-			Markup.button.callback("Change in 10 seconds", `change10s_${column}`),
-			Markup.button.callback("Change in 15 seconds", `change15s_${column}`),
-			Markup.button.callback("Change in 30 seconds", `change30s_${column}`),
-			Markup.button.callback("Change in 1 minute", `change1m_${column}`),
-			Markup.button.callback("Change in 1 hour", `change1h_${column}`)
+			Markup.button.callback("Изменение за 5 секунд", `change5s_${column}`),
+			Markup.button.callback("Изменение за 10 секунд", `change10s_${column}`),
+			Markup.button.callback("Изменение за 15 секунд", `change15s_${column}`),
+			Markup.button.callback("Изменение за 30 секунд", `change30s_${column}`),
+			Markup.button.callback("Изменение за 1 минуту", `change1m_${column}`),
+			Markup.button.callback("Изменение за 1 час", `change1h_${column}`)
 		];
 		const changeActionsKeyboard = chunk(changeActions, 2);
 		await ctx.reply("Выберите период изменения в процентах:", Markup.inlineKeyboard(changeActionsKeyboard));
