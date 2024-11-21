@@ -29,6 +29,7 @@ export function startWebsocketListening(): Result {
 	};
 
 	const start = (id: string, query: Record<string, string | number>) => {
+		console.log('send', id, query)
 		const ws = new WebSocketReconnect('wss://api.cryptoscan.pro/listen');
 		clients.set(id, ws);
 
@@ -42,14 +43,16 @@ export function startWebsocketListening(): Result {
 
 		ws.on('message', (data: any) => {
 			try {
+				console.log('Websocket message received:', String(data));
 				const parsedData = JSON.parse(String(data));
+
 				if (parsedData.quota === 0) {
 					console.error('Quota exceeded. Please try again later or buy subscription in https://cryptoscan.pro');
 					return;
 				}
 
 				// Check if message has an id
-				if (!parsedData.data.id) {
+				if (!parsedData?.data?.id) {
 					console.error('Message has no id:', parsedData);
 					return;
 				}

@@ -42,7 +42,7 @@ export async function formatWithGPT(content: string, prompt: string): Promise<st
         return data.choices[0].message.content
             .trim()
             .replace(/```(?:json)?/g, '')  // Remove code blocks more robustly
-            .replace(/\n/g, ' ')           // Replace newlines with spaces
+            .replace(/\\n/g, ' ')           // Replace newlines with spaces
             .replace(/\\/g, '')            // Remove backslashes
             .replace(/\s+/g, ' ')         // Normalize whitespace
             .replace(/"(.*?)"/g, (match) => match.replace(/"/g, ''));

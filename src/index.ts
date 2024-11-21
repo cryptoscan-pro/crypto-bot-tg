@@ -1,6 +1,7 @@
 import "dotenv/config";
 import { session } from 'telegraf';
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
+import telegramify from "telegramify-markdown";
 
 type PendingHandler = {
     type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt';
@@ -10,7 +11,6 @@ type PendingHandler = {
 
 let pendingHandler: PendingHandler | null = null;
 
-// Initialize session middleware
 bot.use(session());
 import { listWebsockets, manageWebsocket } from './commands/websocket';
 import { startWebsocketListening } from "./services/startWebsocketListening";
@@ -615,7 +615,7 @@ function createMessageHandler(config: any) {
         if (config.destination.type === 'private') {
             telegramQueue.add(async () => {
                 try {
-                    await bot.telegram.sendMessage(config.destination.id, message, {
+                    await bot.telegram.sendMessage(config.destination.id, telegramify(message), {
                         parse_mode: 'Markdown',
                     });
                     console.log(`[Telegram] Message successfully sent to private chat: ${config.destination.id}`);
