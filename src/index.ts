@@ -77,7 +77,7 @@ function handleActions() {
 		const columns = await getTypeColumns(selectedType);
 		const columnButtons = columns.map(col => Markup.button.callback(col, `column_${col}`));
 		const columnKeyboard = chunk(columnButtons, 3);
-		await ctx.reply("Select a field for filtering or sorting:", Markup.inlineKeyboard(columnKeyboard));
+		await ctx.reply("Выберите поле для фильтрации или сортировки:", Markup.inlineKeyboard(columnKeyboard));
 	});
 
 	// Колонки
@@ -91,7 +91,7 @@ function handleActions() {
 			Markup.button.callback("Изменение %", `includes_${selectedColumn}`)
 		];
 		const actionsKeyboard = chunk(actions, 2);
-		await ctx.reply("Select an action:", Markup.inlineKeyboard(actionsKeyboard));
+		await ctx.reply("Выберите действие:", Markup.inlineKeyboard(actionsKeyboard));
 	});
 
 	// Сортировка по убыванию
