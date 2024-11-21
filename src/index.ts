@@ -2,6 +2,7 @@ import "dotenv/config";
 import { session } from 'telegraf';
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
 import telegramify from "telegramify-markdown";
+import Queue from 'p-queue';
 
 type PendingHandler = {
     type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt';
@@ -447,6 +448,11 @@ function handleActions() {
 	});
 }
 
+const queue = new Queue({ 
+	intervalCap: 1,
+	interval: 1000,
+});
+
 bot.launch(() => {
 	CLIENTS.forEach((configs, userId) => {
 		if (!Array.isArray(configs)) {
@@ -468,8 +474,10 @@ bot.launch(() => {
 
 			// Only start active configurations
 			if (config.isActive) {
-				start(config.id, config.query);
-				listen(config.id, createMessageHandler(config));
+				queue.add(() => {
+					start(config.id, config.query);
+					listen(config.id, createMessageHandler(config))
+				});
 			}
 		});
 	});
