@@ -8,7 +8,7 @@ build:
 	docker build -t $(DOCKER_IMAGE_NAME) .
 
 run:
-	docker run --name $(DOCKER_CONTAINER_NAME) --env-file .env -d $(DOCKER_IMAGE_NAME)
+	docker run --restart=on-failure --name $(DOCKER_CONTAINER_NAME) --env-file .env -d $(DOCKER_IMAGE_NAME)
 
 stop:
 	docker stop $(DOCKER_CONTAINER_NAME) && docker rm $(DOCKER_CONTAINER_NAME)
