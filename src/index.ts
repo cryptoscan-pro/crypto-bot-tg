@@ -18,7 +18,7 @@ import { formatWithGPT } from "./services/openaiService";
 import { clearMessage } from "./utils/clearMessage";
 
 type PendingHandler = {
-    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt' | 'suffix' | 'timeout';
+    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt' | 'suffix' | 'timeout' | 'manual_message';
     column?: string;
     ctx: any;
 };
@@ -232,6 +232,43 @@ function handleActions() {
                             [Markup.button.callback('📢 Channel', 'dest_channel')]
                         ])
                     );
+                } else {
+                    await ctx.reply("Session not found. Please start over.");
+                }
+                pendingHandler = null;
+                break;
+            }
+            case 'suffix': {
+                if (pendingHandler.ctx.session?.editingConfig) {
+                    pendingHandler.ctx.session.editingConfig.suffix = text;
+                    
+                    // Move to timeout request
+                    pendingHandler = {
+                        type: 'timeout',
+                        ctx: pendingHandler.ctx
+                    };
+                    await ctx.reply("Enter message delay in milliseconds (or send '0' for no delay):");
+                } else {
+                    await ctx.reply("Session not found. Please start over.");
+                }
+                break;
+            }
+            case 'timeout': {
+                if (pendingHandler.ctx.session?.editingConfig) {
+                    const timeout = parseInt(text);
+                    if (isNaN(timeout) || timeout < 0) {
+                        await ctx.reply("Please enter a valid non-negative number for timeout:");
+                        return;
+                    }
+                    
+                    pendingHandler.ctx.session.editingConfig.timeout = timeout;
+                    
+                    // Move to configuration name request
+                    pendingHandler = {
+                        type: 'config_name',
+                        ctx: pendingHandler.ctx
+                    };
+                    await ctx.reply("Enter a name for the configuration:");
                 } else {
                     await ctx.reply("Session not found. Please start over.");
                 }
