@@ -1,18 +1,7 @@
 import "dotenv/config";
 import { session } from 'telegraf';
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
-import telegramify from "telegramify-markdown";
 import Queue from 'p-queue';
-
-type PendingHandler = {
-    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt' | 'suffix';
-    column?: string;
-    ctx: any;
-};
-
-let pendingHandler: PendingHandler | null = null;
-
-bot.use(session());
 import { listWebsockets, manageWebsocket } from './commands/websocket';
 import { startWebsocketListening } from "./services/startWebsocketListening";
 import { startHttpListening } from "./services/startHttpListening";
@@ -26,6 +15,17 @@ import { getMessageByItem } from "./utils/getMessageByItem";
 import { capitalizeFirstLetter } from "./utils/formatting"; // Assumes there's a utility for this
 import { generateId } from "./utils/generateId";
 import { formatWithGPT } from "./services/openaiService";
+import { clearMessage } from "./utils/clearMessage";
+
+type PendingHandler = {
+    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt' | 'suffix';
+    column?: string;
+    ctx: any;
+};
+
+let pendingHandler: PendingHandler | null = null;
+
+bot.use(session());
 
 export const CLIENTS = new FileMap(CLIENTS_FILE_PATH);
 const historyIds = new LimitedSet(20);
@@ -256,8 +256,9 @@ function handleActions() {
                     }
 
                     if (config.destination.type === 'private') {
-                        await ctx.telegram.sendMessage(config.destination.id, telegramify(message), {
+                        await ctx.telegram.sendMessage(config.destination.id, clearMessage(message), {
                             parse_mode: 'Markdown',
+                            disable_web_page_preview: true
                         });
                     } else if (config.destination.type === 'channel') {
                         let channelId = config.destination.id;
@@ -270,6 +271,7 @@ function handleActions() {
                         await ctx.telegram.sendMessage(channelId, message, {
                             parse_mode: 'Markdown',
                             message_thread_id: config.destination.topicId,
+                            disable_web_page_preview: true
                         });
                     }
 
@@ -712,8 +714,9 @@ function createMessageHandler(config: any) {
         if (config.destination.type === 'private') {
             telegramQueue.add(async () => {
                 try {
-                    await bot.telegram.sendMessage(config.destination.id, telegramify(message), {
+                    await bot.telegram.sendMessage(config.destination.id, clearMessage(message), {
                         parse_mode: 'Markdown',
+												disable_web_page_preview: true
                     });
                     console.log(`[Telegram] Message successfully sent to private chat: ${config.destination.id}`);
                 } catch (error) {
@@ -733,6 +736,7 @@ function createMessageHandler(config: any) {
                     await bot.telegram.sendMessage(channelId, message, {
                         parse_mode: 'Markdown',
 												message_thread_id: config.destination.topicId,
+												disable_web_page_preview: true
                     });
                     console.log(`[Telegram] Message successfully sent to channel: ${channelId}`);
                 } catch (error) {
