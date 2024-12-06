@@ -8,6 +8,7 @@ export function createMessageHandler(config: WebSocketConfig) {
       const message = getMessageByItem(data.data);
       await bot.telegram.sendMessage(config.destination.id, message, {
         parse_mode: 'Markdown'
+        disable_web_page_preview: true
       });
     });
   };

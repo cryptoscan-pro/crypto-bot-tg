@@ -41,6 +41,10 @@ export function startWebsocketListening(): Result {
 			}
 		});
 
+		ws.on('close', () => {
+      console.log(`Websocket connection closed for id: ${id}, ${query}`);		
+		})
+
 		ws.on('message', (data: any) => {
 			try {
 				console.log('Websocket message received:', String(data));

@@ -4,3 +4,5 @@ clients.json
 .env*.local
 .env
 .DS_Store
+var
+pnpm-lock.yaml
