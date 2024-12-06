@@ -27,7 +27,7 @@ export const TELEGRAM_QUEUE_INTERVAL_CAP = 1;
 export const TELEGRAM_QUEUE_INTERVAL = 500;
 export const INTERVAL_TIME = 5000;
 
-export const API_URL = "https://api.cryptoscan.pro";
+export const API_URL = process.env.API_URL || "https://api.cryptoscan.pro";
 
 export const telegramQueue = new PQueue({
 	concurrency: TELEGRAM_QUEUE_CONCURRENCY,
