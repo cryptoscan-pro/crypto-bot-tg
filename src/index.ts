@@ -238,6 +238,48 @@ function handleActions() {
                 pendingHandler = null;
                 break;
             }
+            case 'manual_message': {
+                if (pendingHandler.ctx.session?.selectedConfig) {
+                    let message = text;
+                    const config = pendingHandler.ctx.session.selectedConfig;
+
+                    if (config.aiPrompt) {
+                        try {
+                            message = await formatWithGPT(message, config.aiPrompt);
+                        } catch (error) {
+                            console.error('[AI] Error processing message:', error);
+                        }
+                    }
+
+                    if (config.suffix && config.suffix !== '-') {
+                        message = `${message}\n\n${config.suffix}`;
+                    }
+
+                    if (config.destination.type === 'private') {
+                        await ctx.telegram.sendMessage(config.destination.id, telegramify(message), {
+                            parse_mode: 'Markdown',
+                        });
+                    } else if (config.destination.type === 'channel') {
+                        let channelId = config.destination.id;
+                        if (channelId.startsWith('-100')) {
+                            channelId = config.destination.id;
+                        } else if (!channelId.startsWith('@')) {
+                            channelId = `@${channelId}`;
+                        }
+                        
+                        await ctx.telegram.sendMessage(channelId, message, {
+                            parse_mode: 'Markdown',
+                            message_thread_id: config.destination.topicId,
+                        });
+                    }
+
+                    await ctx.reply("Message sent successfully!");
+                    pendingHandler = null;
+                } else {
+                    await ctx.reply("No configuration selected. Please use /send command again.");
+                }
+                break;
+            }
 		}
 	});
 
@@ -451,6 +493,48 @@ function handleActions() {
 const queue = new Queue({ 
 	intervalCap: 1,
 	interval: 1000,
+});
+
+bot.command('send', async (ctx) => {
+    // Получаем список существующих конфигураций
+    const configs = Object.values(ctx.session.configs || {});
+    
+    if (configs.length === 0) {
+        await ctx.reply("You don't have any saved configurations. Please create one first.");
+        return;
+    }
+
+    // Формируем клавиатуру с конфигурациями
+    const keyboard = Markup.inlineKeyboard(
+        configs.map((config) => [
+            Markup.button.callback(
+                `${config.enabled ? '✅' : '❌'} ${config.name}`,
+                `select_config_${config.id}`
+            )
+        ])
+    );
+
+    await ctx.reply("Select a configuration to send message:", keyboard);
+});
+
+bot.action(/^select_config_(\d+)$/, async (ctx) => {
+    const configId = Number(ctx.match[1]);
+    const config = Object.values(ctx.session.configs || {}).find((c) => c.id === configId);
+
+    if (!config) {
+        await ctx.reply("Configuration not found. Please try again.");
+        return;
+    }
+
+    // Сохраняем выбранную конфигурацию в сессии
+    ctx.session.selectedConfig = config;
+
+    // Запрашиваем текст сообщения
+    pendingHandler = {
+        type: 'manual_message',
+        ctx
+    };
+    await ctx.reply("Enter the message you want to send:");
 });
 
 bot.launch(() => {
