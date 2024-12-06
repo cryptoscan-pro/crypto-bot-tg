@@ -5,7 +5,7 @@ import telegramify from "telegramify-markdown";
 import Queue from 'p-queue';
 
 type PendingHandler = {
-    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt';
+    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt' | 'suffix';
     column?: string;
     ctx: any;
 };
@@ -202,10 +202,10 @@ function handleActions() {
                         };
 
                         pendingHandler = {
-                            type: 'config_name',
+                            type: 'suffix',
                             ctx: pendingHandler.ctx
                         };
-                        await ctx.reply("Enter a name for the configuration:");
+                        await ctx.reply("Enter a suffix for messages (or send '-' if you don't need it):");
                     } catch (error) {
                         console.error('Error checking channel access:', error);
                         await ctx.reply(
@@ -584,12 +584,12 @@ async function askContinueOrSave(ctx: any) {
             id: String(ctx.from.id)
         };
 
-        // Ask for configuration name
+        // Ask for suffix first
         pendingHandler = {
-            type: 'config_name',
+            type: 'suffix',
             ctx
         };
-        await ctx.reply("Enter a name for the configuration:");
+        await ctx.reply("Enter a suffix for messages (or send '-' if you don't need it):");
     });
 
     // Handler for channel choice
@@ -618,6 +618,11 @@ function createMessageHandler(config: any) {
             } catch (error) {
                 console.error('[AI] Error processing message:', error);
             }
+        }
+
+        // Add suffix if configured
+        if (config.suffix && config.suffix !== '-') {
+            message = `${message}\n\n${config.suffix}`;
         }
 
         if (config.destination.type === 'private') {
