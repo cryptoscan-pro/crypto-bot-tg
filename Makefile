@@ -1,3 +1,5 @@
+VOLUME_PATH := $(shell pwd)
+
 DOCKER_IMAGE_NAME = crypto-bot-tg
 DOCKER_CONTAINER_NAME = crypto-bot-tg
 
@@ -8,7 +10,7 @@ build:
 	docker build -t $(DOCKER_IMAGE_NAME) .
 
 run:
-	docker run --restart=on-failure --name $(DOCKER_CONTAINER_NAME) --env-file .env -d $(DOCKER_IMAGE_NAME)
+	docker run --restart=on-failure --name $(DOCKER_CONTAINER_NAME) -v $(PWD)/var:/var --env-file .env -d $(DOCKER_IMAGE_NAME)
 
 stop:
 	docker stop $(DOCKER_CONTAINER_NAME) && docker rm $(DOCKER_CONTAINER_NAME) || true
