@@ -18,7 +18,7 @@ import { formatWithGPT } from "./services/openaiService";
 import { clearMessage } from "./utils/clearMessage";
 
 type PendingHandler = {
-    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt' | 'suffix';
+    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt' | 'suffix' | 'timeout';
     column?: string;
     ctx: any;
 };
@@ -706,44 +706,52 @@ function createMessageHandler(config: any) {
             }
         }
 
-        // Add suffix if configured
         if (config.suffix && config.suffix !== '-') {
             message = `${message}\n\n${config.suffix}`;
         }
 
-        if (config.destination.type === 'private') {
-            telegramQueue.add(async () => {
-                try {
-                    await bot.telegram.sendMessage(config.destination.id, clearMessage(message), {
-                        parse_mode: 'Markdown',
-												disable_web_page_preview: true
-                    });
-                    console.log(`[Telegram] Message successfully sent to private chat: ${config.destination.id}`);
-                } catch (error) {
-                    console.error(`[Telegram] Error sending to private chat:`, error);
-                }
-            });
-        } else if (config.destination.type === 'channel') {
-            telegramQueue.add(async () => {
-                try {
-                    let channelId = config.destination.id;
-                    if (channelId.startsWith('-100')) {
-                        channelId = config.destination.id;
-                    } else if (!channelId.startsWith('@')) {
-                        channelId = `@${channelId}`;
+        const sendMessage = async () => {
+            if (config.destination.type === 'private') {
+                telegramQueue.add(async () => {
+                    try {
+                        await bot.telegram.sendMessage(config.destination.id, clearMessage(message), {
+                            parse_mode: 'Markdown',
+                            disable_web_page_preview: true
+                        });
+                        console.log(`[Telegram] Message successfully sent to private chat: ${config.destination.id}`);
+                    } catch (error) {
+                        console.error(`[Telegram] Error sending to private chat:`, error);
                     }
-                    
-                    await bot.telegram.sendMessage(channelId, message, {
-                        parse_mode: 'Markdown',
-												message_thread_id: config.destination.topicId,
-												disable_web_page_preview: true
-                    });
-                    console.log(`[Telegram] Message successfully sent to channel: ${channelId}`);
-                } catch (error) {
-                    console.error(`[Telegram] Error sending to channel ${config.destination.id}:`, error);
-                    console.error('Message:', message);
-                }
-            });
+                });
+            } else if (config.destination.type === 'channel') {
+                telegramQueue.add(async () => {
+                    try {
+                        let channelId = config.destination.id;
+                        if (channelId.startsWith('-100')) {
+                            channelId = config.destination.id;
+                        } else if (!channelId.startsWith('@')) {
+                            channelId = `@${channelId}`;
+                        }
+                        
+                        await bot.telegram.sendMessage(channelId, message, {
+                            parse_mode: 'Markdown',
+                            message_thread_id: config.destination.topicId,
+                            disable_web_page_preview: true
+                        });
+                        console.log(`[Telegram] Message successfully sent to channel: ${channelId}`);
+                    } catch (error) {
+                        console.error(`[Telegram] Error sending to channel ${config.destination.id}:`, error);
+                        console.error('Message:', message);
+                    }
+                });
+            }
+        };
+
+        // Apply timeout if configured
+        if (config.timeout && config.timeout > 0) {
+            setTimeout(sendMessage, config.timeout);
+        } else {
+            await sendMessage();
         }
     };
 }
