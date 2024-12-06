@@ -17,7 +17,7 @@ export const WEBSOCKET_COMMANDS = {
 
 export type WebSocketCommand = typeof WEBSOCKET_COMMANDS[keyof typeof WEBSOCKET_COMMANDS];
 
-export const CLIENTS_FILE_PATH = './clients.json';
+export const CLIENTS_FILE_PATH = './var/clients.json';
 export const SENT_IDS_LIMIT = 20;
 export const QUEUE_CONCURRENCY = 10;
 export const QUEUE_INTERVAL_CAP = 1;

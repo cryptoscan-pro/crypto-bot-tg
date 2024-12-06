@@ -3,3 +3,4 @@ node_modules
 clients.json
 .env*.local
 .env
+.DS_Store
