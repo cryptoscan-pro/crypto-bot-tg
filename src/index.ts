@@ -751,7 +751,7 @@ function createMessageHandler(config: any) {
             if (config.destination.type === 'private') {
                 telegramQueue.add(async () => {
                     try {
-                        await bot.telegram.sendMessage(config.destination.id, clearMessage(message), {
+                        bot.telegram.sendMessage(config.destination.id, clearMessage(message), {
                             parse_mode: 'Markdown',
                             disable_web_page_preview: true
                         });
@@ -770,7 +770,7 @@ function createMessageHandler(config: any) {
                             channelId = `@${channelId}`;
                         }
                         
-                        await bot.telegram.sendMessage(channelId, message, {
+                        bot.telegram.sendMessage(channelId, message, {
                             parse_mode: 'Markdown',
                             message_thread_id: config.destination.topicId,
                             disable_web_page_preview: true

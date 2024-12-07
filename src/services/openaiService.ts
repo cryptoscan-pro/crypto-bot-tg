@@ -24,7 +24,13 @@ export async function formatWithGPT(content: string, prompt: string): Promise<st
                 ],
                 model: process.env.GPT_API_MODEL,
                 max_tokens: 1000,
-                temperature: 0.7
+                temperature: 0.7,
+                "provider": {
+                    "order": [
+                        "DeepInfra",
+                    ]
+                },
+
             })
         });
 
