@@ -45,6 +45,7 @@ export async function formatWithGPT(content: string, prompt: string): Promise<st
             throw new Error('Invalid API response format');
         }
 
+        // AI! del all comment
         return data.choices[0].message.content
             .trim()
             .replace(/```(?:json)?/g, '')  // Remove code blocks more robustly
