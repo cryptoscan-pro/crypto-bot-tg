@@ -4,6 +4,7 @@ import { getData } from "../utils/getData";
 import { LimitedSet } from "../utils/LimitedSet";
 import { EventEmitter } from 'events';
 
+// AI! move type to file
 interface Result {
   start: (id: string, query: Record<string, string>) => void;
   stop: (id: string) => void;
