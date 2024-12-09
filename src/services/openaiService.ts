@@ -1,4 +1,17 @@
 
+/**
+ * Formats content using a GPT-based AI model.
+ *
+ * This function sends a request to the GPT API to process a given content 
+ * string based on a specified prompt. It returns the formatted response 
+ * from the AI model.
+ *
+ * @param content - The content string to be formatted by the AI.
+ * @param prompt - The prompt to guide the AI in formatting the content.
+ * @returns A promise that resolves to the formatted string response from the AI.
+ * @throws Will throw an error if the GPT_API_KEY or GPT_API_MODEL environment 
+ *         variables are not configured, or if the API request fails.
+ */
 export async function formatWithGPT(content: string, prompt: string): Promise<string> {
     try {
         if (!process.env.GPT_API_KEY) {
@@ -45,7 +58,6 @@ export async function formatWithGPT(content: string, prompt: string): Promise<st
             throw new Error('Invalid API response format');
         }
 
-        // AI! del all comment
         return data.choices[0].message.content
             .trim()
             .replace(/```(?:json)?/g, '')
