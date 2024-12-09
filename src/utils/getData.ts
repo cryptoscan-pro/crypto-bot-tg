@@ -10,14 +10,14 @@ interface ApiResponse<T> {
 export async function getData<T = any>(query: Record<string, string>): Promise<T[]> {
   try {
     const response = await fetch(`${API_URL}?${new URLSearchParams(query)}`);
-    
+
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`API Error: ${errorText}`);
     }
 
-    const result: ApiResponse<T> = await response.json();
-    
+    const result: ApiResponse<T[]> = await response.json();
+
     if (result.quota === 0) {
       throw new Error('Quota exceeded. Please try again later or buy subscription in https://cryptoscan.pro');
     }
