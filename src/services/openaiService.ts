@@ -48,11 +48,8 @@ export async function formatWithGPT(content: string, prompt: string): Promise<st
         // AI! del all comment
         return data.choices[0].message.content
             .trim()
-            .replace(/```(?:json)?/g, '')  // Remove code blocks more robustly
-            // .replace(/\\n/g, '§')           // Replace newlines with spaces
-            // .replace(/\\/g, '')            // Remove backslashes
-            // .replace(/§/g, '\n')           // Replace newlines with spaces
-            .replace(/\s+/g, ' ')         // Normalize whitespace
+            .replace(/```(?:json)?/g, '')
+            .replace(/\s+/g, ' ')
             .replace(/"(.*?)"/g, (match) => match.replace(/"/g, ''));
     } catch (error) {
         console.error('[OpenAI Service Error]:', error);
