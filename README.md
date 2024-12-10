@@ -39,17 +39,44 @@ npm start
 
 ## Usage
 
-After starting the bot, you can interact with it via Telegram. The command flow is as follows:
+After starting the bot, you can interact with it via Telegram:
 
-1. Start the bot with the command `/start`.
-2. The bot will display buttons for selecting a data type, such as `types`, `arbitrage`, `contracts`, `networks`.
-3. Next, choose a field for sorting or filtering, such as `id`, `type`, `exchange`, `symbol`, `name`, `price`, `volume`, `createdAt`.
-4. Then, select an action: sorting, filtering, or change percentage. Options include:
-   - For numbers: `sort desc`, `sort asc`, `filter min`, `filter max`, `change %`.
-   - For strings: `filter`.
-   - Sorting is available for both types.
-5. If `change %` is selected, choose an interval: `change5s`, `10s`, `15s`, `30s`, `1 min`, `1 hour`.
-6. Finally, decide whether to continue adding options or save the configuration. The bot will then start listening for changes.
+1. Start the bot with `/start`
+2. Choose between:
+   - 📋 List of Trackings - View and manage existing configurations
+   - ➕ Add New Tracking - Create a new configuration
+
+When creating a new tracking:
+
+1. Select a data type (e.g., types, arbitrage, contracts, networks)
+2. Choose fields for sorting/filtering (e.g., id, type, exchange, symbol, etc.)
+3. Select actions for the field:
+   - Sort Descending
+   - Sort Ascending 
+   - Minimum Filter
+   - Maximum Filter
+   - Change %
+4. For Change %, select an interval:
+   - 5 seconds
+   - 10 seconds
+   - 15 seconds
+   - 30 seconds
+   - 1 minute
+   - 1 hour
+5. Choose to continue adding more filters or save
+6. When saving:
+   - Choose whether to use AI for message processing
+   - Optionally set a custom message template
+   - Select destination (private messages or channel)
+   - Set message suffix
+   - Set message delay (timeout)
+   - Name your configuration
+
+Additional Features:
+- `/send` command to manually send messages using saved configurations
+- Toggle configurations on/off
+- Edit existing configurations
+- Delete configurations
 
 ### Option Sets
 
@@ -109,30 +136,31 @@ After starting the bot, you can interact with it via Telegram. The command flow 
 5. If `change %` is selected, choose an interval: `change5s`, `10s`, `15s`, `30s`, `1 min`, `1 hour`.
 6. Finally, decide whether to continue adding options or save the configuration. The bot will then start listening for changes.
 
-### Option Sets
+## AI Integration
 
-The option sets in the bot are used to customize how data is retrieved and displayed. They allow users to:
+The bot supports AI-powered message processing using OpenAI's GPT. When creating a configuration, you can:
 
-- **Select Data Types**: Choose the type of cryptocurrency data to interact with, such as `types`, `arbitrage`, `contracts`, `networks`.
-- **Choose Fields**: Specify which fields to sort or filter:
-  - `id`: Unique identifier for the data entry.
-  - `type`: The type of cryptocurrency data.
-  - `exchange`: The exchange platform where the cryptocurrency is traded.
-  - `symbol`: The ticker symbol representing the cryptocurrency.
-  - `name`: The full name of the cryptocurrency.
-  - `price`: The current price of the cryptocurrency.
-  - `volume`: The trading volume of the cryptocurrency.
-  - `createdAt`: The timestamp when the data entry was created.
-- **Apply Actions**: Determine how to manipulate the data, including sorting, filtering, or changing percentages. This helps in organizing and analyzing data effectively.
-- **Set Change Intervals**: When using the `change %` option, select intervals to monitor data changes over time:
-  - `5s`: Track changes in price over 5 seconds.
-  - `10s`: Track changes in price over 10 seconds.
-  - `15s`: Track changes in price over 15 seconds.
-  - `30s`: Track changes in price over 30 seconds.
-  - `1 min`: Track changes in price over 1 minute.
-  - `1 hour`: Track changes in price over 1 hour.
+1. Enable AI processing
+2. Provide a custom prompt for message formatting
+3. The bot will process all messages through the AI before sending
 
-These options provide flexibility in data handling, enabling users to tailor the bot's functionality to their specific needs.
+This allows for:
+- Natural language reformatting
+- Content enhancement
+- Custom message styling
+
+## Message Customization
+
+Each configuration supports several message formatting options:
+
+- **Custom Templates**: Use your own template files for message formatting
+- **Message Suffix**: Add custom text at the end of each message
+- **Message Delay**: Set a custom delay (timeout) before sending messages
+- **Destination Options**:
+  - Private Messages: Send to individual users
+  - Channel Messages: Send to Telegram channels
+    - Supports both channel usernames (@channel) and channel IDs
+    - Requires bot to be channel admin
 
 ## Key Features
 
