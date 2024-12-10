@@ -17,7 +17,7 @@ run:
 build-dev:
 	docker build --target development -t $(DOCKER_IMAGE_NAME):dev .
 
-dev:
+dev: build-dev
 	docker run --rm \
 		--name $(DOCKER_CONTAINER_NAME)-dev \
 		-v $(PWD):/app \
