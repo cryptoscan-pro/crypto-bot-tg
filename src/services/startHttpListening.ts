@@ -3,15 +3,9 @@ import { QUEUE_CONCURRENCY, QUEUE_INTERVAL_CAP, QUEUE_INTERVAL, INTERVAL_TIME, S
 import { getData } from "../utils/getData";
 import { LimitedSet } from "../utils/LimitedSet";
 import { EventEmitter } from 'events';
+import { HttpResult } from "../types/HttpResult";
 
-// AI! move type to file
-interface Result {
-  start: (id: string, query: Record<string, string>) => void;
-  stop: (id: string) => void;
-  listen: (id: string, onData: (data: any) => void) => void;
-}
-
-export function startHttpListening(): Result {
+export function startHttpListening(): HttpResult {
   const sentIds = new LimitedSet<string>(SENT_IDS_LIMIT);
   const clients = new Map<string, NodeJS.Timeout>();
 
@@ -30,7 +24,8 @@ export function startHttpListening(): Result {
 
   const start = (id: string, query: Record<string, string>) => {
     const interval = setInterval(() => {
-      queue.add(() => getData(query)).then((data) => {
+      queue.add(async () => {
+        const data = await getData(query);
         for (const { id: itemId, ...item } of data) {
           const isSavedId = sentIds.has(itemId);
 
