@@ -5,7 +5,7 @@ export async function listWebsockets(ctx: Context) {
   const userId = String(ctx.from!.id);
   const configs = CLIENTS.get(userId);
   const configsArray = Array.isArray(configs) ? configs : [];
-  
+
   if (configsArray.length === 0) {
     await ctx.reply('У вас нет активных конфигураций');
     return;

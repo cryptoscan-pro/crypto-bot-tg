@@ -1,0 +1,14 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      target: ${NODE_ENV:-production}
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules

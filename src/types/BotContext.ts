@@ -7,6 +7,7 @@ export interface BotContext extends Context {
       query: Record<string, string>;
       destination: { type: 'private' | 'channel', id: string };
       name: string;
+      templatePath?: string;
     };
     awaitingConfigName?: {
       query: Record<string, string>;

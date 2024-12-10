@@ -275,6 +275,33 @@ function handleActions() {
                 pendingHandler = null;
                 break;
             }
+            case 'template_path': {
+                if (pendingHandler.ctx.session?.editingConfig) {
+                    try {
+                        // Verify that the template file exists and has the required function
+                        const templatePath = path.resolve(process.cwd(), text);
+                        require(templatePath);
+                        
+                        pendingHandler.ctx.session.editingConfig.templatePath = text;
+                        
+                        // Continue with destination selection
+                        await ctx.reply(
+                            "Select where to send notifications:",
+                            Markup.inlineKeyboard([
+                                [Markup.button.callback('📱 Private Messages', 'dest_private')],
+                                [Markup.button.callback('📢 Channel', 'dest_channel')]
+                            ])
+                        );
+                    } catch (error) {
+                        await ctx.reply("Error loading template file. Please check the path and try again:");
+                        return;
+                    }
+                } else {
+                    await ctx.reply("Session not found. Please start over.");
+                }
+                pendingHandler = null;
+                break;
+            }
             case 'manual_message': {
                 if (pendingHandler.ctx.session?.selectedConfig) {
                     let message = text;
@@ -680,6 +707,35 @@ async function askContinueOrSave(ctx: any) {
     });
 
     bot.action('ai_no', async (ctx) => {
+        if (!ctx.session?.editingConfig) {
+            await ctx.reply("Session not found. Please start over.");
+            return;
+        }
+
+        // Ask about template first
+        await ctx.reply(
+            "Do you want to use a custom template for message formatting?",
+            Markup.inlineKeyboard([
+                [Markup.button.callback('Yes', 'template_yes')],
+                [Markup.button.callback('No', 'template_no')]
+            ])
+        );
+    });
+
+    bot.action('template_yes', async (ctx) => {
+        if (!ctx.session?.editingConfig) {
+            await ctx.reply("Session not found. Please start over.");
+            return;
+        }
+
+        pendingHandler = {
+            type: 'template_path',
+            ctx
+        };
+        await ctx.reply("Enter the path to your template file (relative to project root):");
+    });
+
+    bot.action('template_no', async (ctx) => {
         if (!ctx.session?.editingConfig) {
             await ctx.reply("Session not found. Please start over.");
             return;
