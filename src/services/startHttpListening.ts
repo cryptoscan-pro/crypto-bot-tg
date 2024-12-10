@@ -24,8 +24,8 @@ export function startHttpListening(): HttpResult {
 
   const start = (id: string, query: Record<string, string>) => {
     const interval = setInterval(() => {
-      queue.add(async () => {
-        const data = await getData(query);
+      queue.add(() => getData(query)).then((data) => {
+        // AI! change to await
         for (const { id: itemId, ...item } of data) {
           const isSavedId = sentIds.has(itemId);
 
