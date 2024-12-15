@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.0.0...v1.1.0) (2024-12-15)
+
+
+### Features
+
+* add GitHub Actions workflow to sync README.md to target repository ([f21aa63](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/f21aa6350cf5e5e3cb2a364fe25510e431a63386))
+
 # 1.0.0 (2024-12-10)
 
 
