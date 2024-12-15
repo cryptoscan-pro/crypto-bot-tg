@@ -1,4 +1,3 @@
-
 /**
  * Formats content using a GPT-based AI model.
  *

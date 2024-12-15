@@ -2,9 +2,9 @@ import { BigNumber } from "bignumber.js";
 import { getBigNumber } from "./getBigNumber";
 import { getAgo } from "./getAgo";
 
-export const parseValue = (key: string, value: string | number) => {
+export function parseValue(key: string, value: string | number) {
 	if (key.toLowerCase().includes('change') && !key.toLowerCase().includes('exchange')) {
-    return `${new BigNumber(value).toFixed(2)}%`;
+		return `${new BigNumber(value).toFixed(2)}%`;
 	}
 	if (key.toLowerCase().includes('volume')) {
 		return `$${getBigNumber(Number(value))}`;
@@ -13,17 +13,17 @@ export const parseValue = (key: string, value: string | number) => {
 		return `$${getBigNumber(Number(value))}`;
 	}
 	if (key.toLowerCase().includes('price')) {
-    return `$${new BigNumber(value).toFixed()}`;
-  }
+		return `$${new BigNumber(value).toFixed()}`;
+	}
 	if (key.toLowerCase().includes('fee')) {
-    return `$${new BigNumber(Number(value)).toFixed()}`;
-  }
+		return `$${new BigNumber(Number(value)).toFixed()}`;
+	}
 	if (key.toLowerCase().includes('symbol')) {
-		return `$${value}`
-  }
+		return `$${value}`;
+	}
 	if (key.toLowerCase().includes('createdat')) {
 		return getAgo(new Date(Number(value)));
-  }
+	}
 
 	return value;
 }
