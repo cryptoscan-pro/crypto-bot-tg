@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.1.0...v1.2.0) (2024-12-16)
+
+
+### Features
+
+* upgrade ws-reconnect version ([c2c244a](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/c2c244a2a9493ddc22611dbd4d9b26d5e17c6126))
+
 # [1.1.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.0.0...v1.1.0) (2024-12-15)
 
 
