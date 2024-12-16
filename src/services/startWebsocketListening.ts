@@ -29,7 +29,7 @@ export function startWebsocketListening(): Result {
 	};
 
 	const start = (id: string, query: Record<string, string | number>) => {
-		console.log('send', id, query)
+		console.log('send', id, JSON.stringify(query))
 		const ws = new WebSocketReconnect(process.env.WS_API_URL || 'wss://api.cryptoscan.pro/listen');
 		clients.set(id, ws);
 

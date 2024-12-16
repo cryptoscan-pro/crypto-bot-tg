@@ -1,0 +1,35 @@
+name: Sync README
+
+on:
+  push:
+    paths:
+      - 'README.md'
+    branches:
+      - main
+
+jobs:
+  sync:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: cryptoscan-pro/.github
+          token: ${{ secrets.GH_TOKEN }}
+          path: target-repo
+
+      - name: Copy and commit README
+        run: |
+          mkdir -p target-repo/
+          cp README.md target-repo/bot.md
+          cd target-repo
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          git add bot.md
+          git diff --quiet && git diff --staged --quiet || git commit -m "docs: update Bot documentation"
+          git push

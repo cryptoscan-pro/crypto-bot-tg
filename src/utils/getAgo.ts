@@ -21,5 +21,3 @@ export function getAgo(date: Date): string {
 
 	return `${milliseconds}ms ago`;
 }
-
-

@@ -1,4 +1,4 @@
-# @cryptoscan/crypto-bot-tg
+# Telegram Bot - Cryptoscan
 
 <img src="./assets/example.png" alt="Example Image" style="height:400px;">
 
