@@ -334,7 +334,7 @@ function handleActions() {
                                     channelId = `@${channelId}`;
                                 }
                                 
-                                await ctx.telegram.sendMessage(channelId, message, {
+                                await ctx.telegram.sendMessage(channelId, clearMessage(message), {
                                     parse_mode: 'Markdown',
                                     message_thread_id: config.destination.topicId,
                                     disable_web_page_preview: true
@@ -450,7 +450,7 @@ function handleActions() {
 		const config = configs.find(c => c.id === configId);
 
 		if (!config) {
-			await ctx.reply('Configuration not found');
+			await ctx.reply(clearMessage('Configuration not found'));
 			return;
 		}
 
@@ -538,7 +538,7 @@ function handleActions() {
 		stop(configId);
 		CLIENTS.set(userId, newConfigs);
 
-		await ctx.reply('Configuration successfully deleted');
+		await ctx.reply(clearMessage('Configuration successfully deleted'));
 		await listWebsockets(ctx);
 	});
 
@@ -575,7 +575,7 @@ bot.command('send', async (ctx) => {
     const configs = Object.values(ctx.session.configs || {});
     
     if (configs.length === 0) {
-        await ctx.reply("You don't have any saved configurations. Please create one first.");
+        await ctx.reply(clearMessage("You don't have any saved configurations. Please create one first."));
         return;
     }
 
@@ -597,7 +597,7 @@ bot.action(/^select_config_(\d+)$/, async (ctx) => {
     const config = Object.values(ctx.session.configs || {}).find((c) => c.id === configId);
 
     if (!config) {
-        await ctx.reply("Configuration not found. Please try again.");
+        await ctx.reply(clearMessage("Configuration not found. Please try again."));
         return;
     }
 
@@ -609,7 +609,7 @@ bot.action(/^select_config_(\d+)$/, async (ctx) => {
         type: 'manual_message',
         ctx
     };
-    await ctx.reply("Enter the message you want to send:");
+    await ctx.reply(clearMessage("Enter the message you want to send:"));
 });
 
 bot.launch(() => {
@@ -645,7 +645,7 @@ bot.launch(() => {
 async function askContinueOrSave(ctx: any) {
     const continueButton = Markup.button.callback("Continue", "continue");
     const saveButton = Markup.button.callback("Save", "save");
-    await ctx.reply("What do you want to do next?", Markup.inlineKeyboard([
+    await ctx.reply(clearMessage("What do you want to do next?"), Markup.inlineKeyboard([
         [continueButton, saveButton]
     ]));
 
@@ -654,7 +654,7 @@ async function askContinueOrSave(ctx: any) {
         const currentType = ctx.session?.editingConfig?.query?.type;
         
         if (!currentType) {
-            await ctx.reply("Error: data type not found. Please start over.");
+            await ctx.reply(clearMessage("Error: data type not found. Please start over."));
             return;
         }
 
@@ -681,13 +681,13 @@ async function askContinueOrSave(ctx: any) {
         const columnButtons = allColumns.map(col => Markup.button.callback(col, `column_${col}`));
         const columnKeyboard = chunk(columnButtons, 3);
         
-        await ctx.reply("Select a field for filtering or sorting:", Markup.inlineKeyboard(columnKeyboard));
+        await ctx.reply(clearMessage("Select a field for filtering or sorting:"), Markup.inlineKeyboard(columnKeyboard));
     });
 
     // Save handler
     bot.action('save', async (ctx) => {
         if (!ctx.session?.editingConfig) {
-            await ctx.reply("Session not found. Please start over.");
+            await ctx.reply(clearMessage("Session not found. Please start over."));
             return;
         }
 
@@ -712,7 +712,7 @@ async function askContinueOrSave(ctx: any) {
             type: 'ai_prompt',
             ctx
         };
-        await ctx.reply("Enter a prompt for message processing:");
+        await ctx.reply(clearMessage("Enter a prompt for message processing:"));
     });
 
     bot.action('ai_no', async (ctx) => {
@@ -741,7 +741,7 @@ async function askContinueOrSave(ctx: any) {
             type: 'template_path',
             ctx
         };
-        await ctx.reply("Enter the path to your template file (relative to project root):");
+        await ctx.reply(clearMessage("Enter the path to your template file (relative to project root):"));
     });
 
     bot.action('template_no', async (ctx) => {
