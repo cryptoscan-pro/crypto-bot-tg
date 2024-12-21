@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.2.0...v1.3.0) (2024-12-21)
+
+
+### Features
+
+* Add error handling and logging for message sending ([4f26d57](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/4f26d57664a961220684d0e6be15a74c6383bd81))
+
 # [1.2.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.1.0...v1.2.0) (2024-12-16)
 
 
