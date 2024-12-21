@@ -836,7 +836,7 @@ function createMessageHandler(config: any) {
                             channelId = `@${channelId}`;
                         }
                     
-                        await bot.telegram.sendMessage(channelId, message, {
+                        await bot.telegram.sendMessage(channelId, clearMessage(message), {
                             parse_mode: 'Markdown',
                             message_thread_id: config.destination.topicId,
                             disable_web_page_preview: true
