@@ -304,42 +304,51 @@ function handleActions() {
             }
             case 'manual_message': {
                 if (pendingHandler.ctx.session?.selectedConfig) {
-                    let message = text;
-                    const config = pendingHandler.ctx.session.selectedConfig;
+                    try {
+                        let message = text;
+                        const config = pendingHandler.ctx.session.selectedConfig;
 
-                    if (config.aiPrompt) {
+                        if (config.aiPrompt) {
+                            try {
+                                message = await formatWithGPT(message, config.aiPrompt);
+                            } catch (error) {
+                                console.error('[AI] Error processing message:', error);
+                            }
+                        }
+
+                        if (config.suffix && config.suffix !== '-') {
+                            message = `${message}\n\n${config.suffix}`;
+                        }
+
                         try {
-                            message = await formatWithGPT(message, config.aiPrompt);
+                            if (config.destination.type === 'private') {
+                                await ctx.telegram.sendMessage(config.destination.id, clearMessage(message), {
+                                    parse_mode: 'Markdown',
+                                    disable_web_page_preview: true
+                                });
+                            } else if (config.destination.type === 'channel') {
+                                let channelId = config.destination.id;
+                                if (channelId.startsWith('-100')) {
+                                    channelId = config.destination.id;
+                                } else if (!channelId.startsWith('@')) {
+                                    channelId = `@${channelId}`;
+                                }
+                                
+                                await ctx.telegram.sendMessage(channelId, message, {
+                                    parse_mode: 'Markdown',
+                                    message_thread_id: config.destination.topicId,
+                                    disable_web_page_preview: true
+                                });
+                            }
+                            await ctx.reply("Message sent successfully!");
                         } catch (error) {
-                            console.error('[AI] Error processing message:', error);
+                            console.error('[Telegram] Error sending message:', error);
+                            await ctx.reply("Error sending message. Please try again.");
                         }
+                    } catch (error) {
+                        console.error('[Manual Message] Error processing message:', error);
+                        await ctx.reply("Error processing message. Please try again.");
                     }
-
-                    if (config.suffix && config.suffix !== '-') {
-                        message = `${message}\n\n${config.suffix}`;
-                    }
-
-                    if (config.destination.type === 'private') {
-                        await ctx.telegram.sendMessage(config.destination.id, clearMessage(message), {
-                            parse_mode: 'Markdown',
-                            disable_web_page_preview: true
-                        });
-                    } else if (config.destination.type === 'channel') {
-                        let channelId = config.destination.id;
-                        if (channelId.startsWith('-100')) {
-                            channelId = config.destination.id;
-                        } else if (!channelId.startsWith('@')) {
-                            channelId = `@${channelId}`;
-                        }
-                        
-                        await ctx.telegram.sendMessage(channelId, message, {
-                            parse_mode: 'Markdown',
-                            message_thread_id: config.destination.topicId,
-                            disable_web_page_preview: true
-                        });
-                    }
-
-                    await ctx.reply("Message sent successfully!");
                     pendingHandler = null;
                 } else {
                     await ctx.reply("No configuration selected. Please use /send command again.");
@@ -807,13 +816,14 @@ function createMessageHandler(config: any) {
             if (config.destination.type === 'private') {
                 telegramQueue.add(async () => {
                     try {
-                        bot.telegram.sendMessage(config.destination.id, clearMessage(message), {
+                        await bot.telegram.sendMessage(config.destination.id, clearMessage(message), {
                             parse_mode: 'Markdown',
                             disable_web_page_preview: true
                         });
                         console.log(`[Telegram] Message successfully sent to private chat: ${config.destination.id}`);
                     } catch (error) {
                         console.error(`[Telegram] Error sending to private chat:`, error);
+                        console.error('Message:', message);
                     }
                 });
             } else if (config.destination.type === 'channel') {
@@ -825,8 +835,8 @@ function createMessageHandler(config: any) {
                         } else if (!channelId.startsWith('@')) {
                             channelId = `@${channelId}`;
                         }
-                        
-                        bot.telegram.sendMessage(channelId, message, {
+                    
+                        await bot.telegram.sendMessage(channelId, message, {
                             parse_mode: 'Markdown',
                             message_thread_id: config.destination.topicId,
                             disable_web_page_preview: true
