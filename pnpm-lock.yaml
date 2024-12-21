@@ -12,8 +12,8 @@ importers:
         specifier: ^4.0.0
         version: 4.2.0
       '@javeoff/ws-reconnect':
-        specifier: 1.1.0
-        version: 1.1.0
+        specifier: 1.4.0
+        version: 1.4.0
       bignumber.js:
         specifier: ^9.1.2
         version: 9.1.2
@@ -205,8 +205,8 @@ packages:
   '@javeoff/file-map@4.2.0':
     resolution: {integrity: sha512-08iaBxKoP2U5Gj+h4f5zV5tRxLttXKfoJTuhvFnCquZGP8rSw2dWh83NYHYnrpMqmsm6jXVLtcppw4ylOdMu4Q==}
 
-  '@javeoff/ws-reconnect@1.1.0':
-    resolution: {integrity: sha512-zCtCu7ooi9kzTm9mXs9C+5Jj11QRWw17ojnD6sQidm87VYsKs2PHk5vnGLk11qBp4qjU1Wy/uORp22uFtBbcvg==}
+  '@javeoff/ws-reconnect@1.4.0':
+    resolution: {integrity: sha512-fkRCyOSZVZFtHc9EGH0mZrjiwyL7CR4w8fbDs++8OeB9EixZouNvucSWzLGaauAXhkHJW+wL1k3kT9cqXcJcAw==}
 
   '@telegraf/types@7.1.0':
     resolution: {integrity: sha512-kGevOIbpMcIlCDeorKGpwZmdH7kHbqlk/Yj6dEpJMKEQw5lk0KVQY0OLXaCswy8GqlIVLd5625OB+rAntP9xVw==}
@@ -863,7 +863,7 @@ snapshots:
     dependencies:
       expiry-map: 2.0.0
 
-  '@javeoff/ws-reconnect@1.1.0':
+  '@javeoff/ws-reconnect@1.4.0':
     dependencies:
       ws: 8.18.0
     transitivePeerDependencies:

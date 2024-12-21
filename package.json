@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "@javeoff/file-map": "^4.0.0",
-    "@javeoff/ws-reconnect": "1.1.0",
+    "@javeoff/ws-reconnect": "1.4.0",
     "bignumber.js": "^9.1.2",
     "dotenv": "^16.4.5",
     "p-memoize": "^7.1.1",
