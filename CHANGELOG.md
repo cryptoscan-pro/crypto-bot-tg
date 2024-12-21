@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.3.0...v1.4.0) (2024-12-21)
+
+
+### Features
+
+* Wrap all Telegram messages with clearMessage() function ([53477e7](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/53477e7a40cce0e5a2ebcf74934d00f21e3449f2))
+
 # [1.3.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.2.0...v1.3.0) (2024-12-21)
 
 
