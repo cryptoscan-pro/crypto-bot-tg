@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.5.1...v1.6.0) (2024-12-22)
+
+
+### Features
+
+* **index.ts:** enhance message sending by adding error handling and session management ([8eadc94](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/8eadc9492494fcd0030fce733e91b66f6ee48383))
+
 ## [1.5.1](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.5.0...v1.5.1) (2024-12-22)
 
 
