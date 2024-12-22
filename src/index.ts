@@ -301,9 +301,13 @@ function handleActions() {
             case 'template_path': {
                 if (pendingHandler.ctx.session?.editingConfig) {
                     try {
-                        // Verify that the template file exists and has the required function
                         const templatePath = path.resolve(process.cwd(), text);
-                        require(templatePath);
+                        const template = require(templatePath);
+                        
+                        if (typeof template.default !== 'function') {
+                            await ctx.reply("Template file must export a default function. Please check the file and try again:");
+                            return;
+                        }
                         
                         pendingHandler.ctx.session.editingConfig.templatePath = text;
                         
@@ -837,7 +841,26 @@ async function askContinueOrSave(ctx: any) {
 
 function createMessageHandler(config: any) {
     return async (data: any) => {
-        let message = getMessageByItem(data.data);
+        let message;
+        
+        // If template path is specified, use it
+        if (config.templatePath) {
+            try {
+                const template = require(path.resolve(process.cwd(), config.templatePath));
+                if (typeof template.default === 'function') {
+                    message = await template.default(data.data);
+                } else {
+                    console.error('[Template] Default export is not a function');
+                    message = getMessageByItem(data.data);
+                }
+            } catch (error) {
+                console.error('[Template] Error using template:', error);
+                message = getMessageByItem(data.data);
+            }
+        } else {
+            message = getMessageByItem(data.data);
+        }
+
         console.log(`[WebSocket] Received message for configuration "${config.name}"`);
 
         if (config.aiPrompt) {
