@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.4.0...v1.5.0) (2024-12-22)
+
+
+### Features
+
+* **workflows:** add GitHub Actions workflows for Docker publishing, deployment, and Telegram notifications to automate CI/CD processes ([acdfc9c](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/acdfc9c0ef3eb7dac15aabdd76970774fce2819c))
+
 # [1.4.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.3.0...v1.4.0) (2024-12-21)
 
 
