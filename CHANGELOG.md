@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.5.0...v1.5.1) (2024-12-22)
+
+
+### Bug Fixes
+
+* **deploy.yml:** update GitHub token secret from GITHUB_TOKEN to GH_TOKEN for Docker login compatibility ([30edcbe](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/30edcbee3e2cdedafa5e01d597d091c59c548f2f))
+
 # [1.5.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.4.0...v1.5.0) (2024-12-22)
 
 
