@@ -1,5 +1,27 @@
 import "dotenv/config";
-import { session } from 'telegraf';
+import { Context, NarrowedContext, Middleware, session } from 'telegraf';
+import { Message, Update } from 'telegraf/types';
+import { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
+
+interface SessionData {
+    editingConfig?: any;
+    selectedConfig?: any;
+    configs?: Record<string, any>;
+}
+
+interface MyContext extends Context {
+    session: SessionData;
+}
+
+interface MessageOptions extends ExtraReplyMessage {
+    disable_web_page_preview?: boolean;
+    parse_mode?: string;
+    message_thread_id?: number;
+}
+
+type BotContext = Context & {
+    session: SessionData;
+};
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
 import Queue from 'p-queue';
 import { listWebsockets, manageWebsocket } from './commands/websocket';
@@ -16,16 +38,17 @@ import { capitalizeFirstLetter } from "./utils/formatting"; // Assumes there's a
 import { generateId } from "./utils/generateId";
 import { formatWithGPT } from "./services/openaiService";
 import { clearMessage } from "./utils/clearMessage";
+import path from "path";
 
 type PendingHandler = {
-    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt' | 'suffix' | 'timeout' | 'manual_message';
+    type: 'filter_min' | 'filter_max' | 'config_name' | 'channel_id' | 'ai_prompt' | 'suffix' | 'timeout' | 'manual_message' | 'template_path';
     column?: string;
     ctx: any;
 };
 
 let pendingHandler: PendingHandler | null = null;
 
-bot.use(session());
+bot.use(session<SessionData, BotContext>());
 
 export const CLIENTS = new FileMap(CLIENTS_FILE_PATH);
 const historyIds = new LimitedSet(20);
@@ -322,10 +345,18 @@ function handleActions() {
 
                         try {
                             if (config.destination.type === 'private') {
-                                await ctx.telegram.sendMessage(config.destination.id, clearMessage(message), {
-                                    parse_mode: 'Markdown',
-                                    disable_web_page_preview: true
-                                });
+                                try {
+                                    await ctx.telegram.sendMessage(config.destination.id, message, {
+                                        parse_mode: 'Markdown',
+                                        disable_web_page_preview: true as const
+                                    });
+                                } catch (error) {
+                                    // If first attempt fails, try with cleared message
+                                    await ctx.telegram.sendMessage(config.destination.id, clearMessage(message), {
+                                        parse_mode: 'Markdown',
+                                        disable_web_page_preview: true as const
+                                    });
+                                }
                             } else if (config.destination.type === 'channel') {
                                 let channelId = config.destination.id;
                                 if (channelId.startsWith('-100')) {
@@ -334,11 +365,20 @@ function handleActions() {
                                     channelId = `@${channelId}`;
                                 }
                                 
-                                await ctx.telegram.sendMessage(channelId, clearMessage(message), {
-                                    parse_mode: 'Markdown',
-                                    message_thread_id: config.destination.topicId,
-                                    disable_web_page_preview: true
-                                });
+                                try {
+                                    await ctx.telegram.sendMessage(channelId, message, {
+                                        parse_mode: 'Markdown',
+                                        message_thread_id: config.destination.topicId,
+                                        disable_web_page_preview: true as const
+                                    });
+                                } catch (error) {
+                                    // If first attempt fails, try with cleared message
+                                    await ctx.telegram.sendMessage(channelId, clearMessage(message), {
+                                        parse_mode: 'Markdown',
+                                        message_thread_id: config.destination.topicId,
+                                        disable_web_page_preview: true as const
+                                    });
+                                }
                             }
                             await ctx.reply("Message sent successfully!");
                         } catch (error) {
@@ -813,14 +853,26 @@ function createMessageHandler(config: any) {
         }
 
         const sendMessage = async () => {
+    const messageOptions = {
+        parse_mode: 'Markdown' as const,
+        disable_web_page_preview: true as const
+    };
+    
+    const channelMessageOptions = {
+        ...messageOptions,
+        message_thread_id: config.destination.topicId
+    } as const;
             if (config.destination.type === 'private') {
                 telegramQueue.add(async () => {
                     try {
-                        await bot.telegram.sendMessage(config.destination.id, clearMessage(message), {
-                            parse_mode: 'Markdown',
-                            disable_web_page_preview: true
-                        });
-                        console.log(`[Telegram] Message successfully sent to private chat: ${config.destination.id}`);
+                        try {
+                            await bot.telegram.sendMessage(config.destination.id, message, messageOptions);
+                            console.log(`[Telegram] Message successfully sent to private chat: ${config.destination.id}`);
+                        } catch (error) {
+                            // If first attempt fails, try with cleared message
+                            await bot.telegram.sendMessage(config.destination.id, clearMessage(message), messageOptions);
+                            console.log(`[Telegram] Message successfully sent to private chat (with clearMessage): ${config.destination.id}`);
+                        }
                     } catch (error) {
                         console.error(`[Telegram] Error sending to private chat:`, error);
                         console.error('Message:', message);
@@ -836,11 +888,7 @@ function createMessageHandler(config: any) {
                             channelId = `@${channelId}`;
                         }
                     
-                        await bot.telegram.sendMessage(channelId, clearMessage(message), {
-                            parse_mode: 'Markdown',
-                            message_thread_id: config.destination.topicId,
-                            disable_web_page_preview: true
-                        });
+                        await bot.telegram.sendMessage(channelId, clearMessage(message), channelMessageOptions);
                         console.log(`[Telegram] Message successfully sent to channel: ${channelId}`);
                     } catch (error) {
                         console.error(`[Telegram] Error sending to channel ${config.destination.id}:`, error);
