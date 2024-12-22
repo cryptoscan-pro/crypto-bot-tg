@@ -877,7 +877,7 @@ function createMessageHandler(config: any) {
 
         const sendMessage = async () => {
     const messageOptions = {
-        parse_mode: 'Markdown' as const,
+        parse_mode: 'MarkdownV2' as const,
         disable_web_page_preview: true as const
     };
     
