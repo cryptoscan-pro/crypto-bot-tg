@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.6.0...v1.6.1) (2024-12-22)
+
+
+### Bug Fixes
+
+* **clearMessage.ts:** remove unnecessary replacements in clearMessage function to simplify the code and improve readability ([4442e24](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/4442e24a0bef57a9715acfa910f3372c0e345807))
+
 # [1.6.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.5.1...v1.6.0) (2024-12-22)
 
 
