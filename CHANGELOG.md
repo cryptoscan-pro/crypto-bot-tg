@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.6.1...v1.7.0) (2024-12-22)
+
+
+### Features
+
+* Add support for custom message templates via default export ([7c8ef77](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/7c8ef776f086643c08e80272f85b3774b9a0aa42))
+
 ## [1.6.1](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.6.0...v1.6.1) (2024-12-22)
 
 
