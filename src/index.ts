@@ -351,13 +351,13 @@ function handleActions() {
                             if (config.destination.type === 'private') {
                                 try {
                                     await ctx.telegram.sendMessage(config.destination.id, message, {
-                                        parse_mode: 'Markdown',
+                                        parse_mode: 'MarkdownV2',
                                         disable_web_page_preview: true as const
                                     });
                                 } catch (error) {
                                     // If first attempt fails, try with cleared message
                                     await ctx.telegram.sendMessage(config.destination.id, clearMessage(message), {
-                                        parse_mode: 'Markdown',
+                                        parse_mode: 'MarkdownV2',
                                         disable_web_page_preview: true as const
                                     });
                                 }
@@ -371,14 +371,14 @@ function handleActions() {
 
                                 try {
                                     await ctx.telegram.sendMessage(channelId, message, {
-                                        parse_mode: 'Markdown',
+                                        parse_mode: 'MarkdownV2',
                                         message_thread_id: config.destination.topicId,
                                         disable_web_page_preview: true as const
                                     });
                                 } catch (error) {
                                     // If first attempt fails, try with cleared message
                                     await ctx.telegram.sendMessage(channelId, clearMessage(message), {
-                                        parse_mode: 'Markdown',
+                                        parse_mode: 'MarkdownV2',
                                         message_thread_id: config.destination.topicId,
                                         disable_web_page_preview: true as const
                                     });
