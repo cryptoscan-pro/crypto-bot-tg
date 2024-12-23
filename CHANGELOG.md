@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.7.1...v1.8.0) (2024-12-23)
+
+
+### Features
+
+* **index.ts:** update parse_mode from 'Markdown' to 'MarkdownV2' for better formatting support in Telegram messages ([10154c4](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/10154c4d683d9b4e3e9a6dc3f43f6badac85e50b))
+
 ## [1.7.1](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.7.0...v1.7.1) (2024-12-22)
 
 
