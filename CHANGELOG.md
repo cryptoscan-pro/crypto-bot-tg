@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.7.0...v1.7.1) (2024-12-22)
+
+
+### Bug Fixes
+
+* **index.ts:** update messageOptions parse_mode from 'Markdown' to 'MarkdownV2' for improved formatting capabilities ([837d9ea](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/837d9ea160aa87e94fd9b74ae56771735c048f28))
+
 # [1.7.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.6.1...v1.7.0) (2024-12-22)
 
 
