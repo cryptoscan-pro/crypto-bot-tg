@@ -6,3 +6,4 @@ clients.json
 .DS_Store
 var
 pnpm-lock.yaml
+package-lock.json

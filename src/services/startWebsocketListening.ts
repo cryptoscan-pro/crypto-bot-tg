@@ -3,8 +3,8 @@ import WebSocketReconnect from '@javeoff/ws-reconnect';
 import { parseObjectValues } from '../utils/parseObjectValues';
 
 interface MessageHistory {
-  id: string;
-  timestamp: number;
+	id: string;
+	timestamp: number;
 }
 
 interface Result {
@@ -22,7 +22,7 @@ export function startWebsocketListening(): Result {
 	const cleanupOldMessages = (wsId: string) => {
 		const history = messageHistories.get(wsId);
 		if (!history) return;
-		
+
 		const now = Date.now();
 		const filtered = history.filter(msg => (now - msg.timestamp) < MESSAGE_TIMEOUT);
 		messageHistories.set(wsId, filtered);
@@ -44,7 +44,7 @@ export function startWebsocketListening(): Result {
 		});
 
 		ws.on('close', () => {
-      console.log(`Websocket connection closed for id: ${id}, ${query}`);		
+			console.log(`Websocket connection closed for id: ${id}, ${query}`);
 		})
 
 		ws.on('message', (data: any) => {
@@ -68,10 +68,10 @@ export function startWebsocketListening(): Result {
 
 				// Get message history for this connection
 				const history = messageHistories.get(id) || [];
-				
+
 				// Check if this message was recently received
 				const isDuplicate = history.some(msg => msg.id === parsedData.data.id);
-				
+
 				if (!isDuplicate) {
 					// Add new message to history
 					history.push({
@@ -79,7 +79,7 @@ export function startWebsocketListening(): Result {
 						timestamp: Date.now()
 					});
 					messageHistories.set(id, history);
-					
+
 					// Only emit if not a duplicate
 					eventEmitter.emit(id, parsedData);
 				}
