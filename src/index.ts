@@ -173,7 +173,7 @@ function handleActions() {
             }
             case 'config_name': {
                 if (pendingHandler.ctx.session?.editingConfig) {
-                    const { configId, query, destination, aiPrompt } = pendingHandler.ctx.session.editingConfig;
+                    const { configId, query, destination, aiPrompt, aiModel } = pendingHandler.ctx.session.editingConfig;
                     pendingHandler.ctx.session.editingConfig.name = text;
 
                     const userId = String(ctx.from.id);
@@ -184,7 +184,8 @@ function handleActions() {
                         destination,
                         isActive: true,
                         name: text,
-                        aiPrompt
+                        aiPrompt,
+                        aiModel
                     });
                     CLIENTS.set(userId, configs);
 
@@ -241,6 +242,27 @@ function handleActions() {
                 } else {
                     await ctx.reply("Session not found. Please start over.");
                 }
+                break;
+            }
+            case 'ai_model': {
+                if (pendingHandler.ctx.session?.editingConfig) {
+                    if (text === '-') {
+                        // Skip setting custom model
+                        pendingHandler.ctx.session.editingConfig.aiModel = null;
+                    } else {
+                        pendingHandler.ctx.session.editingConfig.aiModel = text;
+                    }
+                    
+                    // Move to prompt input
+                    pendingHandler = {
+                        type: 'ai_prompt',
+                        ctx: pendingHandler.ctx
+                    };
+                    await ctx.reply("Enter a prompt for message processing:");
+                } else {
+                    await ctx.reply("Session not found. Please start over.");
+                }
+                pendingHandler = null;
                 break;
             }
             case 'ai_prompt': {
@@ -752,6 +774,27 @@ async function askContinueOrSave(ctx: any) {
             return;
         }
 
+        // Ask for AI model first
+        await ctx.reply(
+            "Enter AI model name (or press '-' to use default from .env):",
+            Markup.inlineKeyboard([[
+                Markup.button.callback('Use Default Model', 'use_default_model')
+            ]])
+        );
+        
+        pendingHandler = {
+            type: 'ai_model',
+            ctx
+        };
+    });
+
+    // Add handler for using default model
+    bot.action('use_default_model', async (ctx) => {
+        if (!ctx.session?.editingConfig) {
+            await ctx.reply("Session not found. Please start over.");
+            return;
+        }
+
         pendingHandler = {
             type: 'ai_prompt',
             ctx
@@ -865,7 +908,7 @@ function createMessageHandler(config: any) {
 
         if (config.aiPrompt) {
             try {
-                message = await formatWithGPT(message, config.aiPrompt);
+                message = await formatWithGPT(message, config.aiPrompt, config.aiModel);
             } catch (error) {
                 console.error('[AI] Error processing message:', error);
             }

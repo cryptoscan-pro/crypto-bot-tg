@@ -11,14 +11,16 @@
  * @throws Will throw an error if the GPT_API_KEY or GPT_API_MODEL environment 
  *         variables are not configured, or if the API request fails.
  */
-export async function formatWithGPT(content: string, prompt: string): Promise<string> {
+export async function formatWithGPT(content: string, prompt: string, model?: string): Promise<string> {
     try {
         if (!process.env.GPT_API_KEY) {
             throw new Error('GPT_API_KEY not configured');
         }
 
-        if (!process.env.GPT_API_MODEL) {
-            throw new Error('GPT_API_MODEL not configured');
+        // Use provided model or fall back to env variable
+        const aiModel = model || process.env.GPT_API_MODEL;
+        if (!aiModel) {
+            throw new Error('No AI model specified');
         }
 
         const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -34,7 +36,7 @@ export async function formatWithGPT(content: string, prompt: string): Promise<st
                     { role: "system", content: prompt },
                     { role: "user", content }
                 ],
-                model: process.env.GPT_API_MODEL,
+                model: aiModel,
                 max_tokens: 1000,
                 temperature: 0.7,
                 "provider": {
