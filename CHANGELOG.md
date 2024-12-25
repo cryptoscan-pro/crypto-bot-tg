@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.8.0...v1.9.0) (2024-12-25)
+
+
+### Features
+
+* Add support for custom AI models per configuration ([d6ee46c](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/d6ee46c1ec2042945464b44a0810a253c1806b57))
+
 # [1.8.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.7.1...v1.8.0) (2024-12-23)
 
 
