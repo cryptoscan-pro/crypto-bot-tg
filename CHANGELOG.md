@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.10.0...v1.11.0) (2025-01-02)
+
+
+### Features
+
+* **docker-publish:** add Telegram notifications for workflow success and failure to improve CI feedback ([5bfada8](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/5bfada8fe03e635264f6e101351c92f1b5e6f0b8))
+
 # [1.10.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.9.0...v1.10.0) (2025-01-02)
 
 
