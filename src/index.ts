@@ -72,16 +72,24 @@ if (process.env.WEBSOCKET !== '1') {
 }
 
 bot.start(async (ctx) => {
-    await ctx.reply(
-        'Choose an action:',
-        Markup.inlineKeyboard([
-            [Markup.button.callback('📋 List of Trackings', 'list_websockets')],
-            [Markup.button.callback('➕ Add New Tracking', 'create_websocket')]
-        ])
-    );
+    try {
+        await ctx.reply(
+            'Choose an action:',
+            Markup.inlineKeyboard([
+                [Markup.button.callback('📋 List of Trackings', 'list_websockets')],
+                [Markup.button.callback('➕ Add New Tracking', 'create_websocket')]
+            ])
+        );
 
-    // Action handlers moved here to avoid re-registration
-    handleActions();
+        handleActions();
+    } catch (error) {
+        logger.error('Error in start command', {
+            userId: ctx.from?.id,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        });
+        await ctx.reply("An error occurred while starting the bot.");
+    }
 });
 
 function handleActions() {
@@ -210,6 +218,10 @@ function handleActions() {
             case 'channel_id': {
                 if (pendingHandler.ctx.session?.editingConfig) {
                     let channelId = text.trim();
+                    const logContext = {
+                        userId: ctx.from?.id,
+                        channelId
+                    };
 
                     try {
                         if (channelId.startsWith('-100')) {
@@ -232,7 +244,11 @@ function handleActions() {
                         };
                         await ctx.reply("Enter a suffix for messages (or send '-' if you don't need it):");
                     } catch (error) {
-                        console.error('Error checking channel access:', error);
+                        logger.error('Error checking channel access', {
+                            ...logContext,
+                            error: error instanceof Error ? error.message : String(error),
+                            stack: error instanceof Error ? error.stack : undefined
+                        });
                         await ctx.reply(
                             "Error accessing channel. Please ensure that:\n" +
                             "1. The bot is added to the channel as an administrator\n" +
@@ -357,12 +373,21 @@ function handleActions() {
                     try {
                         let message = text;
                         const config = pendingHandler.ctx.session.selectedConfig;
+                        const logContext = {
+                            userId: ctx.from?.id,
+                            configId: config.id,
+                            configName: config.name
+                        };
 
                         if (config.aiPrompt) {
                             try {
                                 message = await formatWithGPT(message, config.aiPrompt);
                             } catch (error) {
-                                console.error('[AI] Error processing message:', error);
+                                logger.error('[AI] Error processing message:', {
+                                    ...logContext,
+                                    error: error instanceof Error ? error.message : String(error),
+                                    stack: error instanceof Error ? error.stack : undefined
+                                });
                             }
                         }
 
@@ -375,20 +400,30 @@ function handleActions() {
                                 try {
                                     await ctx.telegram.sendMessage(config.destination.id, message, {
                                         parse_mode: 'MarkdownV2',
-                                        disable_web_page_preview: true as const
+                                        disable_web_page_preview: true
                                     });
+                                    logger.info('Manual message sent to private chat', logContext);
                                 } catch (error) {
-                                    // If first attempt fails, try with cleared message
-                                    await ctx.telegram.sendMessage(config.destination.id, clearMessage(message), {
+                                    logger.error('Failed to send manual private message', {
+                                        ...logContext,
+                                        error: error instanceof Error ? error.message : String(error),
+                                        stack: error instanceof Error ? error.stack : undefined
+                                    });
+                        
+                                    const clearedMessage = clearMessage(message);
+                                    await ctx.telegram.sendMessage(config.destination.id, clearedMessage, {
                                         parse_mode: 'MarkdownV2',
-                                        disable_web_page_preview: true as const
+                                        disable_web_page_preview: true
+                                    });
+                                    logger.warn('Manual message sent with clearMessage', {
+                                        ...logContext,
+                                        originalLength: message.length,
+                                        clearedLength: clearedMessage.length
                                     });
                                 }
                             } else if (config.destination.type === 'channel') {
                                 let channelId = config.destination.id;
-                                if (channelId.startsWith('-100')) {
-                                    channelId = config.destination.id;
-                                } else if (!channelId.startsWith('@')) {
+                                if (!channelId.startsWith('@') && !channelId.startsWith('-100')) {
                                     channelId = `@${channelId}`;
                                 }
 
@@ -396,25 +431,50 @@ function handleActions() {
                                     await ctx.telegram.sendMessage(channelId, message, {
                                         parse_mode: 'MarkdownV2',
                                         message_thread_id: config.destination.topicId,
-                                        disable_web_page_preview: true as const
+                                        disable_web_page_preview: true
+                                    });
+                                    logger.info('Manual message sent to channel', {
+                                        ...logContext,
+                                        channelId
                                     });
                                 } catch (error) {
-                                    // If first attempt fails, try with cleared message
-                                    await ctx.telegram.sendMessage(channelId, clearMessage(message), {
+                                    logger.error('Failed to send manual channel message', {
+                                        ...logContext,
+                                        channelId,
+                                        error: error instanceof Error ? error.message : String(error),
+                                        stack: error instanceof Error ? error.stack : undefined
+                                    });
+
+                                    const clearedMessage = clearMessage(message);
+                                    await ctx.telegram.sendMessage(channelId, clearedMessage, {
                                         parse_mode: 'MarkdownV2',
                                         message_thread_id: config.destination.topicId,
-                                        disable_web_page_preview: true as const
+                                        disable_web_page_preview: true
+                                    });
+                                    logger.warn('Manual message sent with clearMessage', {
+                                        ...logContext,
+                                        channelId,
+                                        originalLength: message.length,
+                                        clearedLength: clearedMessage.length
                                     });
                                 }
                             }
                             await ctx.reply("Message sent successfully!");
                         } catch (error) {
-                            console.error('[Telegram] Error sending message:', error);
+                            logger.error('Failed to send manual message after all attempts', {
+                                ...logContext,
+                                error: error instanceof Error ? error.message : String(error),
+                                stack: error instanceof Error ? error.stack : undefined
+                            });
                             await ctx.reply("Error sending message. Please try again.");
                         }
                     } catch (error) {
-                        console.error('[Manual Message] Error processing message:', error);
-                        await ctx.reply("Error processing message. Please try again.");
+                        logger.error('Error in manual message handler', {
+                            userId: ctx.from?.id,
+                            error: error instanceof Error ? error.message : String(error),
+                            stack: error instanceof Error ? error.stack : undefined
+                        });
+                        await ctx.reply("An error occurred while processing your message.");
                     }
                     pendingHandler = null;
                 } else {
@@ -638,25 +698,31 @@ const queue = new Queue({
 });
 
 bot.command('send', async (ctx) => {
-    // Получаем список существующих конфигураций
-    const configs = Object.values(ctx.session.configs || {});
+    try {
+        const configs = Object.values(ctx.session.configs || {});
 
-    if (configs.length === 0) {
-        await ctx.reply(clearMessage("You don't have any saved configurations. Please create one first."));
-        return;
+        if (configs.length === 0) {
+            await ctx.reply(clearMessage("You don't have any saved configurations. Please create one first."));
+        } else {
+            const keyboard = Markup.inlineKeyboard(
+                configs.map((config) => [
+                    Markup.button.callback(
+                        `${config.enabled ? '✅' : '❌'} ${config.name}`,
+                        `select_config_${config.id}`
+                    )
+                ])
+            );
+
+            await ctx.reply("Select a configuration to send message:", keyboard);
+        }
+    } catch (error) {
+        logger.error('Error in /send command', {
+            userId: ctx.from?.id,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        });
+        await ctx.reply("An error occurred while processing your request.");
     }
-
-    // Формируем клавиатуру с конфигурациями
-    const keyboard = Markup.inlineKeyboard(
-        configs.map((config) => [
-            Markup.button.callback(
-                `${config.enabled ? '✅' : '❌'} ${config.name}`,
-                `select_config_${config.id}`
-            )
-        ])
-    );
-
-    await ctx.reply("Select a configuration to send message:", keyboard);
 });
 
 bot.action(/^select_config_(\d+)$/, async (ctx) => {
