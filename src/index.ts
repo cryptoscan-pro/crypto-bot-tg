@@ -1017,15 +1017,6 @@ function createMessageHandler(config: any) {
                                 messageLength: message.length
                             });
                         } catch (error) {
-                            // Логируем первую попытку отправки
-                            logger.error('Failed first attempt to send private message', {
-                                ...logContext,
-                                error: error instanceof Error ? error.message : String(error),
-                                stack: error instanceof Error ? error.stack : undefined,
-                                messageLength: message.length
-                            });
-
-                            // Пробуем отправить очищенное сообщение
                             try {
                                 const clearedMessage = clearMessage(message);
                                 await bot.telegram.sendMessage(config.destination.id, clearedMessage, messageOptions);
@@ -1073,16 +1064,6 @@ function createMessageHandler(config: any) {
                                 messageLength: message.length
                             });
                         } catch (error) {
-                            // Логируем первую попытку отправки
-                            logger.error('Failed first attempt to send channel message', {
-                                ...logContext,
-                                channelId,
-                                error: error instanceof Error ? error.message : String(error),
-                                stack: error instanceof Error ? error.stack : undefined,
-                                messageLength: message.length
-                            });
-
-                            // Пробуем отправить очищенное сообщение
                             try {
                                 const clearedMessage = clearMessage(message);
                                 await bot.telegram.sendMessage(channelId, clearedMessage, channelMessageOptions);
