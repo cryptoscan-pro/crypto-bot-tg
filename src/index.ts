@@ -404,12 +404,6 @@ function handleActions() {
                                     });
                                     logger.info('Manual message sent to private chat', logContext);
                                 } catch (error) {
-                                    logger.error('Failed to send manual private message', {
-                                        ...logContext,
-                                        error: error instanceof Error ? error.message : String(error),
-                                        stack: error instanceof Error ? error.stack : undefined
-                                    });
-                        
                                     const clearedMessage = clearMessage(message);
                                     await ctx.telegram.sendMessage(config.destination.id, clearedMessage, {
                                         parse_mode: 'MarkdownV2',
@@ -438,13 +432,6 @@ function handleActions() {
                                         channelId
                                     });
                                 } catch (error) {
-                                    logger.error('Failed to send manual channel message', {
-                                        ...logContext,
-                                        channelId,
-                                        error: error instanceof Error ? error.message : String(error),
-                                        stack: error instanceof Error ? error.stack : undefined
-                                    });
-
                                     const clearedMessage = clearMessage(message);
                                     await ctx.telegram.sendMessage(channelId, clearedMessage, {
                                         parse_mode: 'MarkdownV2',
