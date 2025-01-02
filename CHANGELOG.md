@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.12.0...v1.12.1) (2025-01-02)
+
+
+### Bug Fixes
+
+* **constants.ts:** update TELEGRAM_QUEUE_INTERVAL from 500 to 1000 to adjust the interval for processing messages in the Telegram queue ([dc2525e](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/dc2525e3a3ad6d009386275a7efe9e7b4178cc2d))
+
 # [1.12.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.11.0...v1.12.0) (2025-01-02)
 
 
