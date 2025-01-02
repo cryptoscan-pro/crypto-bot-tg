@@ -24,7 +24,7 @@ export const QUEUE_INTERVAL_CAP = 1;
 export const QUEUE_INTERVAL = 50;
 export const TELEGRAM_QUEUE_CONCURRENCY = 1;
 export const TELEGRAM_QUEUE_INTERVAL_CAP = 1;
-export const TELEGRAM_QUEUE_INTERVAL = 500;
+export const TELEGRAM_QUEUE_INTERVAL = 1000;
 export const INTERVAL_TIME = 5000;
 
 export const API_URL = process.env.API_URL || "https://api.cryptoscan.pro";
