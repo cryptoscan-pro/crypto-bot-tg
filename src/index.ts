@@ -23,6 +23,7 @@ type BotContext = Context & {
     session: SessionData;
 };
 import { bot, CLIENTS_FILE_PATH, telegramQueue } from "./utils/constants";
+import { logger } from "./utils/logger";
 import Queue from 'p-queue';
 import { listWebsockets, manageWebsocket } from './commands/websocket';
 import { startWebsocketListening } from "./services/startWebsocketListening";
@@ -885,6 +886,12 @@ async function askContinueOrSave(ctx: any) {
 function createMessageHandler(config: any) {
     return async (data: any) => {
         let message;
+        const logContext = {
+            configId: config.id,
+            configName: config.name,
+            destinationType: config.destination.type,
+            destinationId: config.destination.id,
+        };
 
         // If template path is specified, use it
         if (config.templatePath) {
@@ -893,24 +900,42 @@ function createMessageHandler(config: any) {
                 if (typeof template.default === 'function') {
                     message = await template.default(data.data);
                 } else {
-                    console.error('[Template] Default export is not a function');
+                    logger.error('Template default export is not a function', {
+                        ...logContext,
+                        templatePath: config.templatePath,
+                        error: 'Invalid template format'
+                    });
                     message = getMessageByItem(data.data);
                 }
             } catch (error) {
-                console.error('[Template] Error using template:', error);
+                logger.error('Error using template', {
+                    ...logContext,
+                    templatePath: config.templatePath,
+                    error: error instanceof Error ? error.message : String(error),
+                    stack: error instanceof Error ? error.stack : undefined
+                });
                 message = getMessageByItem(data.data);
             }
         } else {
             message = getMessageByItem(data.data);
         }
 
-        console.log(`[WebSocket] Received message for configuration "${config.name}"`);
+        logger.info('Message received', {
+            ...logContext,
+            messageLength: message.length
+        });
 
         if (config.aiPrompt) {
             try {
                 message = await formatWithGPT(message, config.aiPrompt, config.aiModel);
             } catch (error) {
-                console.error('[AI] Error processing message:', error);
+                logger.error('AI processing failed', {
+                    ...logContext,
+                    aiPrompt: config.aiPrompt,
+                    aiModel: config.aiModel,
+                    error: error instanceof Error ? error.message : String(error),
+                    stack: error instanceof Error ? error.stack : undefined
+                });
             }
         }
 
@@ -928,20 +953,33 @@ function createMessageHandler(config: any) {
                 ...messageOptions,
                 message_thread_id: config.destination.topicId
             } as const;
+
             if (config.destination.type === 'private') {
                 telegramQueue.add(async () => {
                     try {
                         try {
                             await bot.telegram.sendMessage(config.destination.id, message, messageOptions);
-                            console.log(`[Telegram] Message successfully sent to private chat: ${config.destination.id}`);
+                            logger.info('Message sent to private chat', {
+                                ...logContext,
+                                messageLength: message.length
+                            });
                         } catch (error) {
                             // If first attempt fails, try with cleared message
-                            await bot.telegram.sendMessage(config.destination.id, clearMessage(message), messageOptions);
-                            console.log(`[Telegram] Message successfully sent to private chat (with clearMessage): ${config.destination.id}`);
+                            const clearedMessage = clearMessage(message);
+                            await bot.telegram.sendMessage(config.destination.id, clearedMessage, messageOptions);
+                            logger.warn('Message sent with clearMessage', {
+                                ...logContext,
+                                originalLength: message.length,
+                                clearedLength: clearedMessage.length
+                            });
                         }
                     } catch (error) {
-                        console.error(`[Telegram] Error sending to private chat:`, error);
-                        console.error('Message:', message);
+                        logger.error('Failed to send private message', {
+                            ...logContext,
+                            error: error instanceof Error ? error.message : String(error),
+                            stack: error instanceof Error ? error.stack : undefined,
+                            messageLength: message.length
+                        });
                     }
                 });
             } else if (config.destination.type === 'channel') {
@@ -954,11 +992,21 @@ function createMessageHandler(config: any) {
                             channelId = `@${channelId}`;
                         }
 
-                        await bot.telegram.sendMessage(channelId, clearMessage(message), channelMessageOptions);
-                        console.log(`[Telegram] Message successfully sent to channel: ${channelId}`);
+                        const clearedMessage = clearMessage(message);
+                        await bot.telegram.sendMessage(channelId, clearedMessage, channelMessageOptions);
+                        logger.info('Message sent to channel', {
+                            ...logContext,
+                            channelId,
+                            messageLength: clearedMessage.length
+                        });
                     } catch (error) {
-                        console.error(`[Telegram] Error sending to channel ${config.destination.id}:`, error);
-                        console.error('Message:', message);
+                        logger.error('Failed to send channel message', {
+                            ...logContext,
+                            channelId: config.destination.id,
+                            error: error instanceof Error ? error.message : String(error),
+                            stack: error instanceof Error ? error.stack : undefined,
+                            messageLength: message.length
+                        });
                     }
                 });
             }
