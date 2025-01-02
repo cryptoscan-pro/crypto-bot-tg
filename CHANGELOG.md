@@ -1,3 +1,11 @@
+# [1.10.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.9.0...v1.10.0) (2025-01-02)
+
+
+### Features
+
+* Add structured logging with context and error details ([019db34](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/019db34bfdb9b8964df40764fe0f5e5090d8d17d))
+* **logger:** add AxiomHQ Winston transport for enhanced logging capabilities ([70b7278](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/70b7278ed4a108ab0bc60b609ec6a64d59723979))
+
 # [1.9.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.8.0...v1.9.0) (2024-12-25)
 
 
