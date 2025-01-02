@@ -964,17 +964,37 @@ function createMessageHandler(config: any) {
                                 messageLength: message.length
                             });
                         } catch (error) {
-                            // If first attempt fails, try with cleared message
-                            const clearedMessage = clearMessage(message);
-                            await bot.telegram.sendMessage(config.destination.id, clearedMessage, messageOptions);
-                            logger.warn('Message sent with clearMessage', {
+                            // Логируем первую попытку отправки
+                            logger.error('Failed first attempt to send private message', {
                                 ...logContext,
-                                originalLength: message.length,
-                                clearedLength: clearedMessage.length
+                                error: error instanceof Error ? error.message : String(error),
+                                stack: error instanceof Error ? error.stack : undefined,
+                                messageLength: message.length
                             });
+
+                            // Пробуем отправить очищенное сообщение
+                            try {
+                                const clearedMessage = clearMessage(message);
+                                await bot.telegram.sendMessage(config.destination.id, clearedMessage, messageOptions);
+                                logger.warn('Message sent with clearMessage', {
+                                    ...logContext,
+                                    originalLength: message.length,
+                                    clearedLength: clearedMessage.length
+                                });
+                            } catch (secondError) {
+                                // Логируем ошибку второй попытки
+                                logger.error('Failed second attempt to send private message', {
+                                    ...logContext,
+                                    error: secondError instanceof Error ? secondError.message : String(secondError),
+                                    stack: secondError instanceof Error ? secondError.stack : undefined,
+                                    messageLength: message.length,
+                                    clearedMessageLength: clearMessage(message).length
+                                });
+                                throw secondError; // Пробрасываем ошибку дальше
+                            }
                         }
                     } catch (error) {
-                        logger.error('Failed to send private message', {
+                        logger.error('Failed to send private message after all attempts', {
                             ...logContext,
                             error: error instanceof Error ? error.message : String(error),
                             stack: error instanceof Error ? error.stack : undefined,
@@ -992,15 +1012,48 @@ function createMessageHandler(config: any) {
                             channelId = `@${channelId}`;
                         }
 
-                        const clearedMessage = clearMessage(message);
-                        await bot.telegram.sendMessage(channelId, clearedMessage, channelMessageOptions);
-                        logger.info('Message sent to channel', {
-                            ...logContext,
-                            channelId,
-                            messageLength: clearedMessage.length
-                        });
+                        try {
+                            await bot.telegram.sendMessage(channelId, message, channelMessageOptions);
+                            logger.info('Message sent to channel', {
+                                ...logContext,
+                                channelId,
+                                messageLength: message.length
+                            });
+                        } catch (error) {
+                            // Логируем первую попытку отправки
+                            logger.error('Failed first attempt to send channel message', {
+                                ...logContext,
+                                channelId,
+                                error: error instanceof Error ? error.message : String(error),
+                                stack: error instanceof Error ? error.stack : undefined,
+                                messageLength: message.length
+                            });
+
+                            // Пробуем отправить очищенное сообщение
+                            try {
+                                const clearedMessage = clearMessage(message);
+                                await bot.telegram.sendMessage(channelId, clearedMessage, channelMessageOptions);
+                                logger.warn('Message sent with clearMessage', {
+                                    ...logContext,
+                                    channelId,
+                                    originalLength: message.length,
+                                    clearedLength: clearedMessage.length
+                                });
+                            } catch (secondError) {
+                                // Логируем ошибку второй попытки
+                                logger.error('Failed second attempt to send channel message', {
+                                    ...logContext,
+                                    channelId,
+                                    error: secondError instanceof Error ? secondError.message : String(secondError),
+                                    stack: secondError instanceof Error ? secondError.stack : undefined,
+                                    messageLength: message.length,
+                                    clearedMessageLength: clearMessage(message).length
+                                });
+                                throw secondError;
+                            }
+                        }
                     } catch (error) {
-                        logger.error('Failed to send channel message', {
+                        logger.error('Failed to send channel message after all attempts', {
                             ...logContext,
                             channelId: config.destination.id,
                             error: error instanceof Error ? error.message : String(error),
