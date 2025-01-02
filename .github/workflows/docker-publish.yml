@@ -11,6 +11,7 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   TELEGRAM_CI_ID: ${{ secrets.TELEGRAM_CI_ID }}
+  TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
 jobs:
   build-and-push:
