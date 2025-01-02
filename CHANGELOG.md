@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.11.0...v1.12.0) (2025-01-02)
+
+
+### Features
+
+* Add comprehensive logging for Telegram message sending and error handling ([45a467f](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/45a467fb2eb5e029f092096124ff8488171e694a))
+
 # [1.11.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.10.0...v1.11.0) (2025-01-02)
 
 
