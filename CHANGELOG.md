@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.12.1...v1.13.0) (2025-01-08)
+
+
+### Features
+
+* Implement message history and editing functionality for Telegram channels ([8277b4b](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/8277b4b7f0f3d3f7ff64e3b05b946e25788b12e9))
+
 ## [1.12.1](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.12.0...v1.12.1) (2025-01-02)
 
 
