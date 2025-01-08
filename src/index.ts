@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { Context, NarrowedContext, Middleware, session } from 'telegraf';
+import { MessageHistory } from './utils/MessageHistory';
 import { Message, Update } from 'telegraf/types';
 import { ExtraReplyMessage } from 'telegraf/typings/telegram-types';
 
@@ -53,6 +54,7 @@ bot.use(session<SessionData, BotContext>());
 
 export const CLIENTS = new FileMap(CLIENTS_FILE_PATH);
 const historyIds = new LimitedSet(20);
+const messageHistory = new MessageHistory();
 
 let start = (id: string, query: Record<string, string | number>) => { };
 let stop = (id: string) => { };
@@ -1056,35 +1058,58 @@ function createMessageHandler(config: any) {
                             channelId = `@${channelId}`;
                         }
 
+                        // Check if message with this ID already exists
+                        const existingMessage = messageHistory.findMessage(channelId, data.id);
+
                         try {
-                            await bot.telegram.sendMessage(channelId, message, channelMessageOptions);
-                            logger.info('Message sent to channel', {
+                            if (existingMessage) {
+                                // Edit existing message
+                                await bot.telegram.editMessageText(
+                                    channelId,
+                                    existingMessage.messageId,
+                                    undefined,
+                                    message,
+                                    channelMessageOptions
+                                );
+                                logger.info('Message edited in channel', {
+                                    ...logContext,
+                                    channelId,
+                                    messageId: existingMessage.messageId,
+                                    messageLength: message.length
+                                });
+                            } else {
+                                // Send new message
+                                const sentMessage = await bot.telegram.sendMessage(channelId, message, channelMessageOptions);
+                                messageHistory.addMessage(channelId, sentMessage.message_id, data.id, message);
+                                logger.info('New message sent to channel', {
+                                    ...logContext,
+                                    channelId,
+                                    messageId: sentMessage.message_id,
+                                    messageLength: message.length
+                                });
+                            }
+                        } catch (error) {
+                            // Try with cleared message if original fails
+                            const clearedMessage = clearMessage(message);
+                            if (existingMessage) {
+                                await bot.telegram.editMessageText(
+                                    channelId,
+                                    existingMessage.messageId,
+                                    undefined,
+                                    clearedMessage,
+                                    channelMessageOptions
+                                );
+                            } else {
+                                const sentMessage = await bot.telegram.sendMessage(channelId, clearedMessage, channelMessageOptions);
+                                messageHistory.addMessage(channelId, sentMessage.message_id, data.id, clearedMessage);
+                            }
+                            logger.warn('Message handled with clearMessage', {
                                 ...logContext,
                                 channelId,
-                                messageLength: message.length
+                                originalLength: message.length,
+                                clearedLength: clearedMessage.length,
+                                isEdit: !!existingMessage
                             });
-                        } catch (error) {
-                            try {
-                                const clearedMessage = clearMessage(message);
-                                await bot.telegram.sendMessage(channelId, clearedMessage, channelMessageOptions);
-                                logger.warn('Message sent with clearMessage', {
-                                    ...logContext,
-                                    channelId,
-                                    originalLength: message.length,
-                                    clearedLength: clearedMessage.length
-                                });
-                            } catch (secondError) {
-                                // Логируем ошибку второй попытки
-                                logger.error('Failed second attempt to send channel message', {
-                                    ...logContext,
-                                    channelId,
-                                    error: secondError instanceof Error ? secondError.message : String(secondError),
-                                    stack: secondError instanceof Error ? secondError.stack : undefined,
-                                    messageLength: message.length,
-                                    clearedMessageLength: clearMessage(message).length
-                                });
-                                throw secondError;
-                            }
                         }
                     } catch (error) {
                         logger.error('Failed to send channel message after all attempts', {
