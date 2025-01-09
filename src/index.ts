@@ -1059,7 +1059,7 @@ function createMessageHandler(config: any) {
                         }
 
                         // Check if message with this ID already exists
-                        const existingMessage = messageHistory.findMessage(channelId, data.id);
+                        const existingMessage = messageHistory.findMessage(channelId, data.data.id);
 
                         try {
                             if (existingMessage) {
@@ -1080,7 +1080,7 @@ function createMessageHandler(config: any) {
                             } else {
                                 // Send new message
                                 const sentMessage = await bot.telegram.sendMessage(channelId, message, channelMessageOptions);
-                                messageHistory.addMessage(channelId, sentMessage.message_id, data.id, message);
+                                messageHistory.addMessage(channelId, sentMessage.message_id, data.data.id, message);
                                 logger.info('New message sent to channel', {
                                     ...logContext,
                                     channelId,
@@ -1101,7 +1101,7 @@ function createMessageHandler(config: any) {
                                 );
                             } else {
                                 const sentMessage = await bot.telegram.sendMessage(channelId, clearedMessage, channelMessageOptions);
-                                messageHistory.addMessage(channelId, sentMessage.message_id, data.id, clearedMessage);
+                                messageHistory.addMessage(channelId, sentMessage.message_id, data.data.id, clearedMessage);
                             }
                             logger.warn('Message handled with clearMessage', {
                                 ...logContext,
