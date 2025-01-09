@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.13.0...v1.13.1) (2025-01-09)
+
+
+### Bug Fixes
+
+* **index.ts:** update message data access to use data.data.id for consistency in message handling logic ([85fbeba](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/85fbeba74c913b6061c3fd76236c4bc5c31929e4))
+
 # [1.13.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.12.1...v1.13.0) (2025-01-08)
 
 
