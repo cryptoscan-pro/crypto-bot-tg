@@ -1,3 +1,10 @@
+# [1.14.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.13.2...v1.14.0) (2025-01-13)
+
+
+### Features
+
+* **openaiService.ts:** enhance formatting by replacing bullet points with new lines for better readability ([33ff4d4](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/33ff4d43c23d1193b0f223bbeec2530aac564592))
+
 ## [1.13.2](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.13.1...v1.13.2) (2025-01-13)
 
 
