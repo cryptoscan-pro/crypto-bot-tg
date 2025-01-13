@@ -62,7 +62,8 @@ export async function formatWithGPT(content: string, prompt: string, model?: str
             .trim()
             .replace(/```(?:json)?/g, '')
             .replace(/\s+/g, ' ')
-            .replace(/"(.*?)"/g, (match) => match.replace(/"/g, ''));
+            .replace(/"(.*?)"/g, (match) => match.replace(/"/g, ''))
+            .replaceAll('•', '\n•')
     } catch (error) {
         console.error('[OpenAI Service Error]:', error);
         // Return original content if AI processing fails
