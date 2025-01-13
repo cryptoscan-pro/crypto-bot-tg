@@ -37,7 +37,7 @@ export async function formatWithGPT(content: string, prompt: string, model?: str
                     { role: "user", content }
                 ],
                 model: aiModel,
-                max_tokens: 20000,
+                max_tokens: 1000,
                 temperature: 0.7,
                 // "provider": {
                 //     "order": [
