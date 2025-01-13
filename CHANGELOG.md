@@ -1,3 +1,10 @@
+## [1.13.2](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.13.1...v1.13.2) (2025-01-13)
+
+
+### Bug Fixes
+
+* **openaiService.ts:** increase max_tokens from 1000 to 20000 to allow for longer responses from the AI model ([b2447ed](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/b2447edf945b4d083e04b5595a5539afcf1dbeba))
+
 ## [1.13.1](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.13.0...v1.13.1) (2025-01-09)
 
 
