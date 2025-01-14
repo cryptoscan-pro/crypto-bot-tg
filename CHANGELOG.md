@@ -1,3 +1,15 @@
+# [1.15.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.14.0...v1.15.0) (2025-01-14)
+
+
+### Bug Fixes
+
+* **openaiService.ts:** reduce max_tokens from 20000 to 1000 to optimize API usage and prevent excessive token consumption ([a1ab207](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/a1ab20794a7c29d8d459d4a1670c93a3653591b0))
+
+
+### Features
+
+* **index.ts, createMessageHandler.ts:** implement message clearing functionality before sending messages to Telegram to ensure message formatting and content integrity ([b34e782](https://github.com/cryptoscan-pro/crypto-bot-tg/commit/b34e782749c862d9d8efa5c683d253261c398e19))
+
 # [1.14.0](https://github.com/cryptoscan-pro/crypto-bot-tg/compare/v1.13.2...v1.14.0) (2025-01-13)
 
 
