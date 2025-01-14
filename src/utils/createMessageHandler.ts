@@ -1,4 +1,6 @@
+import { formatWithGPT } from '../services/openaiService';
 import { WebSocketConfig } from '../types/WebSocketConfig';
+import { clearMessage } from './clearMessage';
 import { bot, telegramQueue } from './constants';
 import { getMessageByItem } from './getMessageByItem';
 import path from 'path';
@@ -35,7 +37,8 @@ export function createMessageHandler(config: WebSocketConfig) {
 
     await telegramQueue.add(async () => {
       try {
-        await bot.telegram.sendMessage(config.destination.id, clearMessage(message), {
+        const clearedMessage = clearMessage(message);
+        await bot.telegram.sendMessage(config.destination.id, clearedMessage, {
           parse_mode: 'Markdown',
           disable_web_page_preview: true
         });

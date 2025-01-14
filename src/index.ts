@@ -400,7 +400,8 @@ function handleActions() {
                         try {
                             if (config.destination.type === 'private') {
                                 try {
-                                    await ctx.telegram.sendMessage(config.destination.id, message, {
+                                    const clearedMessage = clearMessage(message);
+                                    await ctx.telegram.sendMessage(config.destination.id, clearedMessage, {
                                         parse_mode: 'MarkdownV2',
                                         disable_web_page_preview: true
                                     });
@@ -424,7 +425,8 @@ function handleActions() {
                                 }
 
                                 try {
-                                    await ctx.telegram.sendMessage(channelId, message, {
+                                    const clearedMessage = clearMessage(message);
+                                    await ctx.telegram.sendMessage(channelId, clearedMessage, {
                                         parse_mode: 'MarkdownV2',
                                         message_thread_id: config.destination.topicId,
                                         disable_web_page_preview: true
@@ -1013,7 +1015,8 @@ function createMessageHandler(config: any) {
                 telegramQueue.add(async () => {
                     try {
                         try {
-                            await bot.telegram.sendMessage(config.destination.id, message, messageOptions);
+                            const clearedMessage = clearMessage(message);
+                            await bot.telegram.sendMessage(config.destination.id, clearedMessage, messageOptions);
                             logger.info('Message sent to private chat', {
                                 ...logContext,
                                 messageLength: message.length
@@ -1079,7 +1082,8 @@ function createMessageHandler(config: any) {
                                 });
                             } else {
                                 // Send new message
-                                const sentMessage = await bot.telegram.sendMessage(channelId, message, channelMessageOptions);
+                                const clearedMessage = clearMessage(message);
+                                const sentMessage = await bot.telegram.sendMessage(channelId, clearedMessage, channelMessageOptions);
                                 messageHistory.addMessage(channelId, sentMessage.message_id, data.data.id, message);
                                 logger.info('New message sent to channel', {
                                     ...logContext,
